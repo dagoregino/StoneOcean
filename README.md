@@ -356,6 +356,29 @@ selected in 3D. Protocol and evidence open in their own window from any alert, i
 3. **Protocol & evidence**: the collapsible Detect → Treat → Verify loop, authority levels, citations and
    evidence class, for the selected indicator or system only.
 
+### Logging a value by hand
+
+Every indicator has two ranges that are **not** clinical thresholds (`src/domain/types.ts`):
+
+- `display`: where values usually fall. It sets the scale of the charts.
+- `plausible`: what a body or an instrument can really produce. It is the limit for data entry.
+
+`checkManualValue` (`src/domain/manualEntry.ts`) checks what is typed, in the dashboard and in
+`POST /measurements` alike:
+
+| Typed value | What happens |
+| --- | --- |
+| Not a number | Refused, with a message next to the field |
+| Outside `plausible` (400 bpm) | Not saved; the message names the unit and the accepted range |
+| Inside `plausible`, outside `display` (150 bpm) | Saved only after "Save anyway"; the API saves it and answers `"unusual": true` |
+| Inside `display` | Saved |
+
+A value is saved exactly as typed (rounded to the indicator's precision), never clipped. What it
+means, nominal, caution or critical, is then decided by the same rules as for any other reading.
+A likely unit mistake gets a hint: glucose typed in mmol/L, temperature typed in °F. On the charts,
+a point beyond `display` is drawn at the edge with a mark (▲ above, ▼ below) and the readout shows
+its real value. The `plausible` ranges are project parameters, not published limits.
+
 ### Medical Resources (HELIOS Resource Intelligence)
 
 A second section of the app, next to Monitoring in the top bar: what is on board, what state it is in, who is

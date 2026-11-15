@@ -253,6 +253,9 @@ export class TrendChart {
       lines.push(h('span', { class: 'chart-tip-status' }, h('span', { class: 'status-glyph', dataset: { status } }, STATUS_GLYPH[status]), STATUS_LABEL[status]));
     }
     if (reading.source === 'manual') lines.push(h('span', null, 'Logged by hand'));
+    // The point is drawn at the edge: say so, and the figure above is the real value.
+    if (reading.value > def.display.max) lines.push(h('span', { class: 'trend-tip-beyond' }, '▲ Above the range of this chart'));
+    else if (reading.value < def.display.min) lines.push(h('span', { class: 'trend-tip-beyond' }, '▼ Below the range of this chart'));
     if (compare) {
       const other = nearest(this.visibleCompare, reading.t);
       if (other) {
@@ -428,6 +431,31 @@ export class TrendChart {
     if (this.visible.length <= SPARSE_LIMIT) this.visible.forEach((r) => dot(r, scale, seriesColor, 3.5));
     else if (this.visible.length > 0) dot(this.visible[this.visible.length - 1], scale, seriesColor, 3.5);
     ctx.restore();
+
+    // A value beyond the chart's range is held at the edge and marked: ▲ at the top, ▼ at the bottom.
+    // The mark is drawn just inside the plot, so nothing ever leaves the canvas.
+    const edgeMarks = (readings: Reading[], display: Range, color: string): void => {
+      for (const r of readings) {
+        const above = r.value > display.max;
+        if (!above && r.value >= display.min) continue;
+        const mx = this.xOf(r.t);
+        if (mx < x0 || mx > x1) continue;
+        const tip = above ? y0 - 5 : y1 + 5;
+        const base = above ? y0 + 3 : y1 - 3;
+        ctx.beginPath();
+        ctx.moveTo(mx, tip);
+        ctx.lineTo(mx - 5, base);
+        ctx.lineTo(mx + 5, base);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = surface;
+        ctx.stroke();
+      }
+    };
+    edgeMarks(this.visible, primary.def.display, seriesColor);
+    if (compare) edgeMarks(this.visibleCompare, compare.def.display, COMPARE_COLOR);
 
     // Milestones sit on the time axis, with a faint line up through the plot.
     for (const milestone of data.milestones) {

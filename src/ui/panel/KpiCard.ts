@@ -1,6 +1,7 @@
 import type { AppActions } from '../../app/actions';
 import { SYSTEMS } from '../../domain/catalog/systems';
 import type { IndicatorDef, IndicatorEvaluation, MissionMinutes, Reading } from '../../domain/types';
+import { checkManualValue } from '../../domain/manualEntry';
 import { h, setText } from '../dom';
 import { formatTrend, formatValue, statusBadge, updateBadge } from '../format';
 import { Sparkline } from '../Sparkline';
@@ -16,7 +17,7 @@ export class KpiCard {
   private readonly badge = statusBadge('unknown');
   private readonly note = h('span', { class: 'kpi-note' });
   private readonly dueChip = h('span', { class: 'chip chip-due', hidden: true }, 'Check due');
-  private readonly spark = new Sparkline();
+  private readonly spark: Sparkline;
   private readonly range = h('span', { class: 'kpi-range' });
 
   constructor(private readonly def: IndicatorDef, actions: AppActions, showSystem: boolean, onOpen: () => void, onProtocol: () => void) {
@@ -27,35 +28,74 @@ export class KpiCard {
       // The clinical detail is one step away, for whoever wants it.
       h('button', { class: 'link-button', type: 'button', onclick: onProtocol }, 'Protocol and evidence →'),
     );
+    this.spark = new Sparkline(def.display);
     const selfCheck = def.acquisition === 'self-check';
 
     const input = h('input', {
       type: 'number',
       id: `log-${def.id}`,
-      min: String(def.display.min),
-      max: String(def.display.max),
+      // Data-entry limits: what an instrument can really read. Not the chart range, and not a clinical threshold.
+      min: String(def.plausible.min),
+      max: String(def.plausible.max),
       step: String(def.decimals > 0 ? 1 / 10 ** def.decimals : 1),
       placeholder: def.unit || 'value',
-      required: true,
       'aria-label': `Log ${def.name}${def.unit ? ` in ${def.unit}` : ''}`,
+      'aria-describedby': `log-${def.id}-message`,
+      oninput: () => clearMessage(),
     });
+    const message = h('p', { class: 'kpi-log-message', id: `log-${def.id}-message`, role: 'alert' });
+    const confirm = h('div', { class: 'kpi-log-confirm', hidden: true });
+    const clearMessage = (): void => {
+      message.textContent = '';
+      confirm.hidden = true;
+      input.removeAttribute('aria-invalid');
+    };
+    const save = (value: number): void => {
+      // Saved exactly as entered: the rules engine decides what the value means.
+      actions.logReading(def.id, value);
+      input.value = '';
+      clearMessage();
+      form.hidden = true;
+      logButton.setAttribute('aria-expanded', 'false');
+      logButton.focus({ preventScroll: true });
+    };
+    const submit = (): void => {
+      const check = checkManualValue(def, input.value);
+      clearMessage();
+      if (check.kind === 'ok') return save(check.value);
+      message.textContent = check.message;
+      if (check.kind === 'unusual') {
+        // Possible, but far from where this indicator usually sits: ask once before saving.
+        confirm.replaceChildren(
+          h('button', { type: 'button', class: 'button button-small', onclick: () => save(check.value) }, 'Save anyway'),
+          h('button', { type: 'button', class: 'button button-quiet button-small', onclick: () => {
+            clearMessage();
+            input.select();
+            input.focus({ preventScroll: true });
+          } }, 'Measure again'),
+        );
+        confirm.hidden = false;
+        confirm.querySelector<HTMLElement>('button:last-child')?.focus({ preventScroll: true });
+        return;
+      }
+      input.setAttribute('aria-invalid', 'true');
+      input.focus({ preventScroll: true });
+    };
     const form = h(
       'form',
       {
         class: 'kpi-log',
         hidden: true,
+        // The messages are ours, shown next to the field: not the browser's generic bubble.
+        noValidate: true,
         onsubmit: (event: Event) => {
           event.preventDefault();
-          const value = Number(input.value);
-          if (input.value === '' || !Number.isFinite(value)) return;
-          actions.logReading(def.id, Math.min(def.display.max, Math.max(def.display.min, value)));
-          input.value = '';
-          form.hidden = true;
-          logButton.setAttribute('aria-expanded', 'false');
+          submit();
         },
       },
-      input,
-      h('button', { type: 'submit', class: 'button button-small' }, 'Save'),
+      h('div', { class: 'kpi-log-row' }, input, h('button', { type: 'submit', class: 'button button-small' }, 'Save')),
+      message,
+      confirm,
     );
     const logButton = h(
       'button',

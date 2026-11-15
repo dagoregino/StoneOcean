@@ -5067,3 +5067,44 @@ details p {
 .guide-dialog[data-tier='immediate'] .guide-actions {
   background: linear-gradient(180deg, rgba(40, 17, 23, 0.97), rgba(20, 11, 16, 0.99));
 }
+
+/* ---------- Logging a value by hand: messages next to the field ---------- */
+.kpi-log {
+  flex-direction: column;
+}
+
+.kpi-log-row {
+  display: flex;
+  gap: 6px;
+}
+
+.kpi-log input[aria-invalid='true'] {
+  border-color: var(--critical);
+}
+
+.kpi-log-message {
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.kpi-log-message:empty {
+  display: none;
+}
+
+.kpi-log-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A value beyond the chart's range: an arrow at the edge it left by. */
+.sparkline-marks {
+  fill: var(--text);
+  stroke: none;
+}
+
+.trend-tip-beyond {
+  color: var(--text);
+  font-weight: 600;
+}
