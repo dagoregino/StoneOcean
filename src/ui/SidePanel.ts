@@ -1,5 +1,6 @@
 import type { AppActions } from '../app/actions';
 import type { HealthStore } from '../data/HealthStore';
+import type { ResourceStore } from '../data/resources/ResourceStore';
 import { formatDelay } from '../domain/catalog/environments';
 import { INDICATORS } from '../domain/catalog/indicators';
 import { severity } from '../domain/status';
@@ -45,7 +46,13 @@ export class SidePanel {
   private tab: TabId = 'overview';
   private indicator: IndicatorId | null = null;
 
-  constructor(parent: HTMLElement, private readonly store: HealthStore, private readonly actions: AppActions) {
+  constructor(
+    parent: HTMLElement,
+    private readonly store: HealthStore,
+    private readonly actions: AppActions,
+    private readonly resources: ResourceStore,
+    private readonly openResources: () => void,
+  ) {
     this.triage.append(
       this.triageIcon,
       h('div', null, h('span', { class: 'eyebrow' }, 'What should I do?'), this.triageHeadline, this.triageDetail, this.triageLink),
@@ -72,6 +79,8 @@ export class SidePanel {
     store.events.on('interventions', () => this.update(store.evaluation));
     store.events.on('medicalPlan', () => this.update(store.evaluation));
     store.events.on('environment', () => this.update(store.evaluation));
+    // The inventory changed: the resource check on each protocol may read differently now.
+    resources.events.on('change', () => this.update(store.evaluation));
     // The live feed answers once, shortly after start: rebuild the view to show it.
     store.events.on('spaceWeather', () => this.show());
     this.show();
@@ -90,6 +99,8 @@ export class SidePanel {
     const context: PanelContext = {
       store,
       actions: this.actions,
+      resources: this.resources,
+      openResources: this.openResources,
       system: store.selected,
       indicator: this.indicator,
       openTrend: (id) => this.open('trends', id),

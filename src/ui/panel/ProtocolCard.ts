@@ -6,6 +6,7 @@ import { BASIS_LABEL, provenanceOf, type AlertProvenance } from '../../domain/ev
 import { AUTHORITY_LABEL, PROVENANCE_LABEL, VERIFICATION_LABEL, type EvidenceWithSource } from '../../domain/evidence/types';
 import { offerSteps, WITHHELD_STEP, type MedicalPlan } from '../../domain/medicalPlan';
 import type { DriftSummary, DriftTrigger, HealthStatus, IndicatorDef, IndicatorEvaluation } from '../../domain/types';
+import { READINESS_LABEL, type ProtocolReadiness, type StepCheck } from '../../domain/resources/readiness';
 import { h, setText } from '../dom';
 import { formatValue, formatWhen, statusBadge, updateBadge } from '../format';
 import { helpToggle } from './help';
@@ -18,6 +19,8 @@ const TRIGGER_LABEL: Record<DriftTrigger, string> = {
 
 /** What the card needs besides the readings: the medical plan and the latest intervention. */
 export interface CardContext {
+  /** Resource Intelligence: whether the protocol can be carried out with what is on board. Null until the inventory has loaded. */
+  readiness: ProtocolReadiness | null;
   plan: MedicalPlan;
   intervention?: Intervention;
 }
@@ -61,16 +64,20 @@ export class ProtocolCard {
   private readonly verify = h('div', { class: 'dtv-body' });
   private readonly treatStep: HTMLDetailsElement;
   private readonly verifyStep: HTMLDetailsElement;
+  private readonly resources = h('div', { class: 'dtv-body' });
+  private readonly resourcesStep: HTMLDetailsElement;
+  private resourcesSignature = '';
   private loopSignature = '';
   private flagged: boolean | null = null;
 
-  constructor(private readonly def: IndicatorDef, private readonly actions: AppActions, onViewTrend: () => void) {
+  constructor(private readonly def: IndicatorDef, private readonly actions: AppActions, onViewTrend: () => void, private readonly onOpenResources: () => void) {
     this.provenance = provenanceOf(def.id);
     const { provenance } = this;
     const evidence = evidenceFor(provenance.rule);
     const step = (title: string, body: HTMLElement, open = false): HTMLDetailsElement => h('details', { class: 'dtv-step', open }, h('summary', null, title), body);
     this.treatStep = step('Treat', this.treat);
     this.verifyStep = step('Verify', this.verify);
+    this.resourcesStep = h('details', { class: 'dtv-step dtv-resources' }, h('summary', null, 'Resources and crew'), this.resources);
     const help = helpToggle(`About ${def.name}`, h('p', null, h('strong', null, 'Why it matters. '), def.whyItMatters), h('p', null, h('strong', null, 'How to measure. '), def.howToMeasure));
 
     this.element = h(
@@ -107,6 +114,7 @@ export class ProtocolCard {
         ),
         this.treatStep,
         this.verifyStep,
+        this.resourcesStep,
         h(
           'details',
           { class: 'dtv-step dtv-evidence' },
@@ -126,11 +134,14 @@ export class ProtocolCard {
     this.element.dataset.status = evaluation.status;
     this.renderBasis(drift);
     this.renderLoop(evaluation.status, context, Boolean(drift));
+    this.renderResources(context.readiness);
     // When an indicator becomes flagged (or a treatment starts), open the step that now matters. After that the reader decides.
     const flagged = evaluation.status === 'caution' || evaluation.status === 'critical';
     if (flagged !== this.flagged) {
       this.flagged = flagged;
       this.treatStep.open = flagged;
+      // With an alert open, what is on board matters as much as what to do.
+      this.resourcesStep.open = flagged;
     }
     if (context.intervention && !this.verifyStep.dataset.opened) {
       this.verifyStep.dataset.opened = 'true';
@@ -171,8 +182,8 @@ export class ProtocolCard {
   }
 
   /** Treat and Verify are rebuilt only when something that affects them changes. */
-  private renderLoop(status: HealthStatus, { plan, intervention }: CardContext, againstBaseline: boolean): void {
-    const signature = `${status}|${plan.drugsPreauthorized}|${intervention?.id ?? 0}|${intervention?.outcome ?? ''}|${againstBaseline}`;
+  private renderLoop(status: HealthStatus, { plan, intervention, readiness }: CardContext, againstBaseline: boolean): void {
+    const signature = `${status}|${plan.drugsPreauthorized}|${intervention?.id ?? 0}|${intervention?.outcome ?? ''}|${againstBaseline}|${readiness?.steps.map((s) => s.readiness).join() ?? ''}`;
     if (signature === this.loopSignature) return;
     this.loopSignature = signature;
     const { def, provenance } = this;
@@ -192,13 +203,20 @@ export class ProtocolCard {
         h(
           'ul',
           { class: 'protocol' },
-          ...rule.treat.map((step) => {
+          ...rule.treat.map((step, index) => {
             const withheld = step.requiresPreauthorization && !plan.drugsPreauthorized;
+            const check = readiness?.steps[index];
             return h(
               'li',
               { class: withheld ? 'withheld' : '' },
               h('span', { class: 'level', title: AUTHORITY_LABEL[step.authorityLevel] }, `L${step.authorityLevel}`),
-              h('span', { class: 'protocol-text' }, withheld ? WITHHELD_STEP : step.text),
+              h(
+                'span',
+                { class: 'protocol-text' },
+                withheld ? WITHHELD_STEP : step.text,
+                // What is on board decides whether the step can be done, so it is said on the step itself.
+                check && !withheld && check.readiness !== 'no_resources' ? h('span', { class: 'step-readiness', dataset: { readiness: check.readiness } }, READINESS_LABEL[check.readiness]) : null,
+              ),
               withheld
                 ? null
                 : h('button', { class: 'button button-quiet button-small', type: 'button', onclick: () => this.actions.startIntervention(def.id, step.text, step.authorityLevel) }, 'Done'),
@@ -240,5 +258,37 @@ export class ProtocolCard {
       );
     }
     this.verify.replaceChildren(h('p', null, rule.verify.criterion), state);
+  }
+
+  /**
+   * Resource Intelligence for this protocol: what it needs, what is on board and usable,
+   * who is trained and available, and what has to go to the responsible medical staff.
+   */
+  private renderResources(readiness: ProtocolReadiness | null): void {
+    const signature = readiness ? JSON.stringify([readiness.steps.map((s) => [s.readiness, s.limitations]), readiness.personnel.map((p) => p.detail)]) : 'none';
+    if (signature === this.resourcesSignature) return;
+    this.resourcesSignature = signature;
+    if (!readiness) {
+      this.resources.replaceChildren(h('p', { class: 'quiet' }, 'The inventory is still loading.'));
+      return;
+    }
+    const list = (title: string, kind: string, items: string[]): HTMLElement | null =>
+      items.length === 0 ? null : h('div', { class: 'ri-group', dataset: { kind } }, h('p', { class: 'dtv-label' }, title), h('ul', null, ...items.map((text) => h('li', null, text))));
+    const stepLine = (s: StepCheck): string => `Step ${s.index + 1}: ${s.step.text}`;
+    const checked = readiness.steps.filter((s) => s.readiness !== 'no_resources');
+    const blocks = [
+      list('Protocol steps that can be carried out now', 'ok', readiness.executable.map(stepLine)),
+      list('On board and usable', 'ok', readiness.available.map((c) => `${c.alternative ? `${c.alternative.label} (accepted by the protocol in place of ${c.need.label})` : c.need.label}: ${c.freeUnits} usable, ${c.need.quantity} needed`)),
+      list('Missing or not enough', 'critical', readiness.missing.map((c) => `${c.need.label}: ${c.detail}`)),
+      list('On board but not usable', 'critical', readiness.nonOperational.map((c) => `${c.need.label}: ${c.detail}`)),
+      list('Trained crew', 'neutral', readiness.personnel.map((p) => `${p.procedure}: ${p.detail}`)),
+      list('Limits to keep in mind', 'attention', readiness.limitations),
+      list('Goes to the responsible medical staff', 'critical', readiness.escalations),
+    ].filter((el): el is HTMLElement => el !== null);
+    this.resources.replaceChildren(
+      ...(checked.length === 0 ? [h('p', { class: 'quiet' }, 'This protocol needs nothing from the medical inventory.')] : blocks),
+      h('p', { class: 'provenance' }, 'A check of what is on board, not medical advice: an item being available does not make using it appropriate. Resource requirements are simulated mission configuration.'),
+      h('button', { class: 'link-button', type: 'button', onclick: this.onOpenResources }, 'Open Medical Resources →'),
+    );
   }
 }

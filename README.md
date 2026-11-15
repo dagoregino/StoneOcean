@@ -251,6 +251,37 @@ body system selected in 3D:
 3. **Protocol & evidence**: the collapsible Detect → Treat → Verify loop, authority levels, citations and
    evidence class, for the selected indicator or system only.
 
+### Medical Resources (HELIOS Resource Intelligence)
+
+A second section of the app, next to Monitoring in the top bar: what is on board, what state it is in, who is
+trained to use it, and whether the approved protocols can be carried out with it.
+
+| Layer | Where | What it holds |
+| --- | --- | --- |
+| Rules | `src/domain/resources/` | Types, movement rules, validation, findings and alerts, CSV/JSON import, the readiness engine. No DOM, no storage. |
+| Storage | `src/data/resources/` | `ResourceRepository` (IndexedDB in the app, memory in tests) and `ResourceStore`, the one service that changes anything. |
+| Screens | `src/ui/resources/` | Overview, Inventory, Movements, Crew capabilities, Alerts, and the dialogs. Loaded the first time the section is opened. |
+
+- **Offline-first.** Records live in IndexedDB (`helios-medical-resources`): they survive reloads and need no
+  connection. Every write is one transaction, so a movement and the count it produces are saved together.
+- **Auditable.** A count only changes through a movement. Movements are added, never edited or deleted;
+  a record that is no longer used is deactivated and keeps its history.
+- **Resource Intelligence.** `readiness.ts` checks each step of a protocol from the existing
+  Detect → Treat → Verify matrix against the inventory and the roster: usable items, calibration and
+  inspection in date, free quantity, crew with a current certification who are available. The result appears
+  inside each protocol (Monitoring → Protocol & evidence → "Resources and crew") and as a table in the
+  resources overview. It never proposes a drug, a dose or a substitute: an alternative is used only when the
+  protocol's own requirements list it, and a medication step stays withheld unless the medical plan
+  pre-authorizes drugs, whatever is on board.
+- **Simulated configuration and data.** What each protocol step needs (`protocols.ts`) and the demonstration
+  kit and roster (`seed.ts`) are made up to show the module working, and are labelled as simulated on screen.
+  In a real mission both come from the flight surgeon and the manifest.
+- **QR.** Each record's identifier is also its QR code (`HELIOS:RES:<id>`), shown in its details. "Find by
+  code" accepts a typed identifier or a handheld scanner, and uses the camera where the browser supports
+  `BarcodeDetector`.
+- **Sync, later.** Every write is also appended to an `outbox` store, in order. Nothing drains it yet: it is
+  the hook for a delay-tolerant (DTN) bundle agent.
+
 ### The 3D body
 
 The body is built from [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/desc.html),

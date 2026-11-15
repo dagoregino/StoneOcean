@@ -2,7 +2,7 @@ import { formatDelay } from '../../domain/catalog/environments';
 import { INDICATORS } from '../../domain/catalog/indicators';
 import { HAZARDS } from '../../domain/catalog/systems';
 import type { Intervention } from '../../domain/engine/verify';
-import { provenanceOf } from '../../domain/evidence/indicatorRules';
+import { INDICATOR_RULES, provenanceOf } from '../../domain/evidence/indicatorRules';
 import { PROVENANCE_LABEL } from '../../domain/evidence/types';
 import { offerSteps } from '../../domain/medicalPlan';
 import { severity, STATUS_GLYPH } from '../../domain/status';
@@ -86,7 +86,7 @@ export class OverviewTab implements PanelTab {
           'button',
           { class: 'row', type: 'button', onclick: () => (s.driver ? this.context.openProtocol(s.driver.def.id) : store.select(s.def.id)) },
           h('span', { class: 'status-glyph', 'aria-hidden': 'true' }),
-          h('span', { class: 'row-text' }, h('strong', null, s.def.name), h('span', { class: 'row-sub' }), h('span', { class: 'row-action' }), h('span', { class: 'row-provenance' })),
+          h('span', { class: 'row-text' }, h('strong', null, s.def.name), h('span', { class: 'row-sub' }), h('span', { class: 'row-action' }), h('span', { class: 'row-resources' }), h('span', { class: 'row-provenance' })),
         ),
       (el, s) => {
         el.dataset.status = s.status;
@@ -96,6 +96,13 @@ export class OverviewTab implements PanelTab {
         const steps = s.status === 'critical' ? driver?.def.guidance.critical : driver?.def.guidance.caution;
         const first = steps ? offerSteps(steps, store.medicalPlan).find((step) => !step.withheld) : undefined;
         setText(el.querySelector('.row-action')!, first ? `First step: ${first.text}` : '');
+        // Can the protocol behind this alert be carried out with what is on board?
+        const { resources } = this.context;
+        const readiness = driver && resources.ready && !resources.error ? resources.readiness(INDICATOR_RULES[driver.def.id].ruleId, store.medicalPlan) : null;
+        const blocked = readiness?.steps.filter((step) => step.readiness === 'blocked').length ?? 0;
+        const resourceLine = el.querySelector<HTMLElement>('.row-resources')!;
+        setText(resourceLine, readiness ? `Resources: ${readiness.executable.length} of ${readiness.steps.length} protocol steps can be carried out now${blocked > 0 ? ` · ${blocked} blocked` : ''}` : '');
+        resourceLine.dataset.level = blocked > 0 ? 'critical' : 'ok';
         // No alert without its provenance: basis of the threshold and class of evidence.
         const provenance = driver ? provenanceOf(driver.def.id, Boolean(driver.drift)) : undefined;
         setText(el.querySelector('.row-provenance')!, provenance ? `${provenance.basisLabel} · ${PROVENANCE_LABEL[provenance.evidence.provenanceClass]}` : '');

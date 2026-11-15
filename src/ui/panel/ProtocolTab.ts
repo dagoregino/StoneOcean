@@ -1,4 +1,5 @@
 import { INDICATORS } from '../../domain/catalog/indicators';
+import { INDICATOR_RULES } from '../../domain/evidence/indicatorRules';
 import { severity } from '../../domain/status';
 import type { Evaluation, IndicatorEvaluation, IndicatorId } from '../../domain/types';
 import { h } from '../dom';
@@ -37,11 +38,13 @@ export class ProtocolTab implements PanelTab {
       const id = indicator.def.id;
       let card = this.cards.get(id);
       if (!card) {
-        card = new ProtocolCard(indicator.def, this.context.actions, () => this.context.openTrend(id));
+        card = new ProtocolCard(indicator.def, this.context.actions, () => this.context.openTrend(id), this.context.openResources);
         this.cards.set(id, card);
         this.list.append(card.element);
       }
-      card.update(indicator, { plan: store.medicalPlan, intervention: store.latestIntervention(id) });
+      const { resources } = this.context;
+      const readiness = resources.ready && !resources.error ? resources.readiness(INDICATOR_RULES[id].ruleId, store.medicalPlan) : null;
+      card.update(indicator, { plan: store.medicalPlan, intervention: store.latestIntervention(id), readiness });
     }
   }
 

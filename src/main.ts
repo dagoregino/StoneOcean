@@ -1,6 +1,9 @@
 import type { AppActions } from './app/actions';
 import { APP_TITLE, HISTORY_DAYS, MISSION_START_MINUTES } from './config';
 import { HealthStore } from './data/HealthStore';
+import { IndexedDbResourceRepository } from './data/resources/IndexedDbResourceRepository';
+import { MemoryResourceRepository } from './data/resources/ResourceRepository';
+import { ResourceStore } from './data/resources/ResourceStore';
 import { MissionClock } from './data/MissionClock';
 import { scenarioById } from './data/sources/scenarios';
 import { SimulatedSource } from './data/sources/SimulatedSource';
@@ -11,6 +14,7 @@ import { environmentFor, loadProfile, type CrewProfile } from './intro/profile';
 import type { HealthStatus } from './domain/types';
 import { BodyViewport } from './scene/BodyViewport';
 import { h } from './ui/dom';
+import './ui/resources/resources.css';
 import { SidePanel } from './ui/SidePanel';
 import { SimulatorBar, type SimulatorState } from './ui/SimulatorBar';
 import { SymptomReporter } from './ui/SymptomReporter';
@@ -72,7 +76,42 @@ function bootstrap(profile: CrewProfile): void {
     removeSymptom: (id) => store.removeSymptom(id),
   };
 
+  // Medical resources live in the browser's own database: they stay on this device and need no connection.
+  const resources = new ResourceStore(IndexedDbResourceRepository.isSupported() ? new IndexedDbResourceRepository() : new MemoryResourceRepository(), { currentUser: () => profile.name });
+  void resources.init();
+
   new TopBar($('topbar'), store);
+
+  // Main navigation: the monitoring console and the medical resources share the top bar.
+  type View = 'monitoring' | 'resources';
+  let resourcesView: Promise<unknown> | undefined;
+  const alertCount = h('span', { class: 'nav-count', hidden: true });
+  const navButtons: Record<View, HTMLButtonElement> = {
+    monitoring: h('button', { class: 'nav-item', type: 'button', onclick: () => showView('monitoring') }, 'Monitoring'),
+    resources: h('button', { class: 'nav-item', type: 'button', onclick: () => showView('resources') }, 'Medical Resources', alertCount),
+  };
+  function showView(view: View): void {
+    $('app').dataset.view = view;
+    $('resources').hidden = view !== 'resources';
+    for (const [name, button] of Object.entries(navButtons)) {
+      if (name === view) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    }
+    if (location.hash !== (view === 'resources' ? '#resources' : '')) history.replaceState(null, '', view === 'resources' ? '#resources' : location.pathname + location.search);
+    if (view === 'resources') {
+      $('resources').scrollTop = 0;
+      // The screens load the first time they are opened; the inventory itself is already in memory.
+      resourcesView ??= import('./ui/resources/ResourcesView').then(({ ResourcesView }) => new ResourcesView($('resources'), resources, store, () => profile.name));
+    }
+  }
+  $('topbar').querySelector('.brand')!.after(h('nav', { class: 'main-nav', 'aria-label': 'Main' }, navButtons.monitoring, navButtons.resources));
+  resources.events.on('change', () => {
+    const open = resources.ready && !resources.error ? resources.alerts.length : 0;
+    alertCount.hidden = open === 0;
+    alertCount.textContent = String(open);
+    alertCount.setAttribute('aria-label', `${open} open alerts`);
+  });
+  showView(location.hash === '#resources' ? 'resources' : 'monitoring');
   // The crew member's name doubles as the way back to the introduction.
   $('topbar').append(
     h(
@@ -89,7 +128,7 @@ function bootstrap(profile: CrewProfile): void {
     ),
   );
   new SystemList($('systems'), store);
-  new SidePanel($('panel'), store, actions);
+  new SidePanel($('panel'), store, actions, resources, () => showView('resources'));
   new SimulatorBar($('simulator'), actions, simulatorState);
   new SymptomReporter($('viewport-tools'), $('symptom-form'), $('hint'), store, actions);
   new TwinViewControl($('viewport-tools'), $('hint'), store);
