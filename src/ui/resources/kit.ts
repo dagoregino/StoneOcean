@@ -142,12 +142,4 @@ export function toast(message: string, kind: 'ok' | 'error' = 'ok'): void {
   window.setTimeout(() => item.remove(), kind === 'error' ? 6000 : 3500);
 }
 
-/** Saves text as a file on the device: no server involved. */
-export function download(filename: string, content: string, type: string): void {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const link = h('a', { href: url, download: filename });
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
+export { download } from '../download';

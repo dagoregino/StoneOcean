@@ -1,7 +1,7 @@
 import { STATUS_GLYPH } from '../domain/status';
 import { GUIDANCE_SOURCE_LABEL, GUIDANCE_TIER_TITLE, type GuidanceLine, type SymptomGuidance } from '../domain/symptomGuidance';
 import type { IndicatorId } from '../domain/types';
-import { openDialog } from './dialog';
+import { openDialog, type Dialog } from './dialog';
 import { h } from './dom';
 
 export interface GuidanceActions {
@@ -23,7 +23,7 @@ const step = (number: number, title: string, ...body: (HTMLElement | null)[]): H
  * anything else, in four steps, and says where each line comes from. Its color follows the
  * triage; its content comes from `buildSymptomGuidance`, never from this file.
  */
-export function openSymptomGuidance(guidance: SymptomGuidance, actions: GuidanceActions): void {
+export function openSymptomGuidance(guidance: SymptomGuidance, actions: GuidanceActions, options: { modal?: boolean } = {}): Dialog {
   const { tier, status } = guidance;
   const close = (then?: () => void): void => {
     dialog.close();
@@ -98,8 +98,9 @@ export function openSymptomGuidance(guidance: SymptomGuidance, actions: Guidance
       ),
       h('div', { class: 'guide-actions' }, ...buttons),
     ],
-    { className: 'guide-dialog', wide: true },
+    { className: 'guide-dialog', wide: true, modal: options.modal },
   );
   dialog.element.dataset.tier = tier;
-  (dialog.element.querySelector('.guide-actions .button') as HTMLElement | null)?.focus({ preventScroll: true });
+  if (options.modal !== false) (dialog.element.querySelector('.guide-actions .button') as HTMLElement | null)?.focus({ preventScroll: true });
+  return dialog;
 }
