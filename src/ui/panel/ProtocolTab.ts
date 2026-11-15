@@ -4,6 +4,7 @@ import { severity } from '../../domain/status';
 import type { Evaluation, IndicatorEvaluation, IndicatorId } from '../../domain/types';
 import { h } from '../dom';
 import type { PanelContext, PanelTab } from './context';
+import { OverviewTab } from './OverviewTab';
 import { ProtocolCard } from './ProtocolCard';
 
 /**
@@ -13,18 +14,24 @@ import { ProtocolCard } from './ProtocolCard';
  */
 export class ProtocolTab implements PanelTab {
   readonly element = h('div', { class: 'tab-view' });
-  private readonly list = h('div', { class: 'protocol-list' });
+  private readonly summary: OverviewTab;
+  private readonly list = h('div', { class: 'protocol-cards' });
   private readonly scope = h('p', { class: 'protocol-scope' });
+  private readonly protocolSection = h('section', { class: 'protocol-detail-section' }, h('h3', null, 'Protocols and evidence'), this.scope, this.list);
   private readonly cards = new Map<IndicatorId, ProtocolCard>();
 
   constructor(private readonly context: PanelContext) {
-    this.element.append(this.scope, this.list);
+    this.summary = new OverviewTab(context);
+    this.element.append(this.summary.element, this.protocolSection);
   }
 
   update(evaluation: Evaluation): void {
     const { store } = this.context;
+    this.summary.update(evaluation);
     const { indicators, scope } = this.inScope(evaluation);
+    this.scope.hidden = scope.length === 0;
     this.scope.replaceChildren(...scope);
+    this.protocolSection.hidden = indicators.length === 0;
 
     // Cards are kept while their indicator stays in scope, so open sections stay open.
     const wanted = new Set(indicators.map((i) => i.def.id));
@@ -49,6 +56,7 @@ export class ProtocolTab implements PanelTab {
   }
 
   dispose(): void {
+    this.summary.dispose();
     this.cards.forEach((card) => card.dispose());
   }
 
@@ -70,7 +78,7 @@ export class ProtocolTab implements PanelTab {
       .sort((a, b) => severity(b.status) - severity(a.status));
     return {
       indicators: flagged,
-      scope: [flagged.length > 0 ? 'Indicators that need attention now. Select a body system to see the rest.' : 'Nothing needs attention. Select a body system, or open an indicator from the overview, to see its protocol and evidence.'],
+      scope: flagged.length > 0 ? ['Indicators that need attention now. Select a body system to see the rest.'] : [],
     };
   }
 }
