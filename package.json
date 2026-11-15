@@ -28,6 +28,7 @@
   "dependencies": {
     "@lichess-org/vosk-browser": "0.0.3",
     "gsap": "^3.15.1",
+    "qrcode-generator": "^2.0.4",
     "three": "^0.187.0",
     "three-mesh-bvh": "^0.9.18"
   },
