@@ -5067,3 +5067,145 @@ details p {
 .guide-dialog[data-tier='immediate'] .guide-actions {
   background: linear-gradient(180deg, rgba(40, 17, 23, 0.97), rgba(20, 11, 16, 0.99));
 }
+
+/* ==========================================================================
+   Small-screen and demo-control fixes
+   ========================================================================== */
+
+/* Demo controls stay quiet: they are not actions of the health console. */
+#simulator .button-quiet {
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--glass);
+  color: var(--text);
+  font-weight: 550;
+  box-shadow: var(--glass-highlight);
+}
+
+#simulator .button-quiet:hover {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-hover);
+}
+
+#simulator .button-quiet[aria-pressed='true'] {
+  border-color: rgba(200, 210, 230, 0.55);
+  background: rgba(150, 165, 195, 0.18);
+}
+
+/* The guidance window always ends on its last line, clear of the action bar. */
+.guide-dialog .res-dialog-body {
+  scroll-padding-bottom: 96px;
+}
+
+.guide-dialog .guide-context {
+  margin-bottom: 6px;
+}
+
+/* In the guided demo the window is shown, not operated: no action bar to cover its first step. */
+.res-dialog.guide-dialog:not(:modal) .guide-actions {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* Header: three compact rows instead of six. */
+  #topbar {
+    gap: 8px 10px;
+    padding: 8px 12px;
+  }
+  #topbar .brand {
+    order: 1;
+    margin-right: auto;
+    gap: 8px;
+  }
+  #topbar .brand p {
+    display: none;
+  }
+  #topbar .brand h1 {
+    font-size: 17px;
+  }
+  .brand-mark {
+    width: 24px;
+    height: 24px;
+  }
+  .play-mission {
+    order: 2;
+    min-height: 34px;
+    margin-right: 0;
+    padding: 5px 12px 5px 10px;
+    font-size: 13px;
+  }
+  .crew-chip {
+    order: 3;
+    padding-right: 4px;
+  }
+  .crew-chip-name {
+    display: none;
+  }
+  .main-nav {
+    order: 4;
+    width: 100%;
+  }
+  .nav-item {
+    padding-block: 5px;
+    white-space: nowrap;
+  }
+  #topbar .mission {
+    order: 5;
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mission-clock {
+    flex: none;
+    font-size: 13px;
+  }
+
+  /* 3D view: one row of controls along the top, scrolling sideways, so the astronaut stays in view. */
+  #hud {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    top: 8px;
+    left: 0;
+    right: 0;
+    padding: 0 10px 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    pointer-events: auto;
+  }
+  #hud::-webkit-scrollbar,
+  #topbar .mission::-webkit-scrollbar {
+    display: none;
+  }
+  #hud > * {
+    flex: none;
+  }
+  /* Every status carries its own glyph and word wherever it appears: the legend can go. */
+  #legend,
+  #hint,
+  #hint.is-active {
+    display: none;
+  }
+  #viewport-tools {
+    flex-wrap: nowrap;
+    margin: 0;
+    gap: 8px;
+  }
+  #hud .systems-toggle,
+  #hud .tool-toggle,
+  #hud .tool-primary,
+  #hud .segment {
+    min-height: 34px;
+    padding-block: 4px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .earth-badge {
+    right: 8px;
+    bottom: 8px;
+  }
+}
