@@ -2494,3 +2494,756 @@ details p {
   font-size: 12px;
   line-height: 1.6;
 }
+
+/* ==========================================================================
+   Dark liquid glass · space medical UI
+   One vocabulary for every control: dark translucent surfaces, hairline
+   borders, soft radii, a restrained cool glow. Gradients mark the main action
+   only. Status colors stay reserved for Nominal / Caution / Critical.
+   ========================================================================== */
+:root {
+  --glass: rgba(18, 26, 44, 0.55);
+  --glass-strong: rgba(14, 20, 36, 0.78);
+  --glass-hover: rgba(34, 48, 78, 0.62);
+  --glass-border: rgba(160, 196, 255, 0.16);
+  --glass-border-strong: rgba(170, 206, 255, 0.34);
+  --glass-highlight: inset 0 1px 0 rgba(210, 228, 255, 0.08);
+  --glow: 0 0 18px rgba(88, 150, 255, 0.16);
+  --cyan: #5cc8f0;
+  --violet: #8f7cf5;
+  --action: linear-gradient(135deg, #2f9fd8 0%, #3f7fe8 52%, #7d6cf0 100%);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ---------- Controls ---------- */
+.button,
+.button-quiet,
+.tool-toggle,
+.tool-primary,
+.systems-toggle,
+.consult-button,
+.segment,
+.res-chip,
+.nav-item {
+  transition:
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+
+/* Main action: the only place a gradient is used. */
+.button,
+.tool-primary {
+  border: 1px solid rgba(190, 220, 255, 0.36);
+  border-radius: 10px;
+  background: var(--action);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: var(--glass-highlight), 0 4px 18px rgba(63, 127, 232, 0.28);
+  filter: none;
+}
+
+.tool-primary {
+  border-radius: 999px;
+}
+
+.button:hover,
+.tool-primary:hover {
+  filter: none;
+  border-color: rgba(214, 232, 255, 0.6);
+  box-shadow: var(--glass-highlight), 0 6px 24px rgba(92, 150, 255, 0.42);
+}
+
+.button:active,
+.tool-primary:active,
+.button-quiet:active,
+.tool-toggle:active {
+  transform: translateY(1px);
+}
+
+/* Secondary action: dark glass. */
+.button-quiet,
+.consult-button {
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--text);
+  font-weight: 550;
+  box-shadow: var(--glass-highlight);
+}
+
+.button-quiet:hover,
+.consult-button:hover {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-hover);
+  box-shadow: var(--glass-highlight), var(--glow);
+}
+
+.consult-button {
+  border-color: color-mix(in srgb, var(--earth) 60%, transparent);
+}
+
+.button:disabled,
+.button-quiet:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Controls: neutral glass. The ones that float over the 3D view also blur what is behind them. */
+.segmented,
+.main-nav {
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--glass-strong);
+  box-shadow: var(--glass-highlight);
+}
+
+.segment,
+.nav-item {
+  border-radius: 9px;
+}
+
+.segment:hover,
+.nav-item:hover {
+  background: rgba(120, 160, 230, 0.1);
+}
+
+.segment[aria-pressed='true'],
+.nav-item[aria-current='page'] {
+  background: linear-gradient(180deg, rgba(92, 150, 255, 0.26), rgba(92, 150, 255, 0.14));
+  box-shadow: inset 0 0 0 1px rgba(150, 196, 255, 0.34);
+  color: var(--text);
+}
+
+.tool-toggle,
+.systems-toggle,
+.twin-switch,
+#simulator,
+.res-chip {
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight);
+}
+
+.tool-toggle,
+.systems-toggle,
+.twin-switch,
+#simulator,
+.symptom-form,
+.earth-badge,
+.viewport-tooltip {
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+}
+
+.tool-toggle:hover,
+.systems-toggle:hover,
+.res-chip:hover {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-hover);
+  box-shadow: var(--glass-highlight), var(--glow);
+}
+
+.tool-toggle[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--symptom) 70%, transparent);
+  background: color-mix(in srgb, var(--symptom) 20%, var(--glass-strong));
+  box-shadow: var(--glass-highlight), 0 0 18px color-mix(in srgb, var(--symptom) 24%, transparent);
+}
+
+.res-chip[aria-pressed='true'] {
+  border-color: rgba(150, 196, 255, 0.5);
+  background: linear-gradient(180deg, rgba(92, 150, 255, 0.26), rgba(92, 150, 255, 0.12));
+}
+
+#simulator {
+  border-style: solid;
+  border-radius: 14px;
+  background: var(--glass-strong);
+}
+
+.icon-button,
+.help-button {
+  border: 1px solid transparent;
+  transition:
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+
+.icon-button:hover,
+.help-button:hover,
+.help-button[aria-expanded='true'] {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-hover);
+}
+
+.help-button {
+  border-color: var(--glass-border);
+  background: var(--glass);
+}
+
+.res-input,
+.field select,
+.symptom-form select,
+.symptom-form textarea,
+#simulator select,
+.kpi-log input {
+  border: 1px solid var(--glass-border);
+  border-radius: 9px;
+  background: rgba(6, 10, 20, 0.6);
+}
+
+.res-dialog,
+.symptom-form {
+  border: 1px solid var(--glass-border-strong);
+  background: linear-gradient(180deg, rgba(22, 32, 56, 0.94), rgba(11, 16, 30, 0.96));
+  box-shadow:
+    var(--glass-highlight),
+    0 0 0 1px rgba(2, 5, 12, 0.5),
+    0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Body systems: a drawer, closed by default ---------- */
+#app {
+  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-areas:
+    'top top'
+    'viewport panel';
+}
+
+#systems {
+  grid-area: viewport;
+  z-index: 6;
+  justify-self: start;
+  width: min(292px, 86%);
+  border-right: 1px solid var(--glass-border);
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 12px 0 40px rgba(0, 0, 0, 0.35);
+  /* Slides with a transform: opening it never changes the size of the 3D canvas. */
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition:
+    transform 0.28s var(--ease),
+    visibility 0s linear 0.28s;
+}
+
+#systems.is-open {
+  transform: none;
+  visibility: visible;
+  transition:
+    transform 0.28s var(--ease),
+    visibility 0s;
+}
+
+.systems-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.systems-head .section-title {
+  margin: 0;
+}
+
+.systems-toggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 34px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.systems-toggle:hover,
+.systems-toggle[aria-expanded='true'] {
+  color: var(--text);
+}
+
+/* Three stacked lines: a list. */
+.systems-toggle-icon {
+  width: 14px;
+  height: 10px;
+  background:
+    linear-gradient(currentColor, currentColor) 0 0 / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 50% / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat;
+}
+
+.systems-toggle-count {
+  min-width: 19px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--status, var(--warning));
+  color: #14100a;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.systems-toggle-count[data-status='critical'] {
+  color: #fff;
+}
+
+/* ---------- Scanner caption ---------- */
+.scan-caption {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  z-index: 3;
+  padding: 8px 18px;
+  border: 1px solid var(--glass-border-strong);
+  border-radius: 999px;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: scan-caption-in 0.22s var(--ease);
+  transition: opacity 0.22s var(--ease);
+}
+
+.scan-caption.is-done {
+  border-color: color-mix(in srgb, var(--cyan) 70%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--cyan) 24%, transparent);
+}
+
+.scan-caption.is-leaving {
+  opacity: 0;
+}
+
+@keyframes scan-caption-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+}
+
+/* ---------- Vital summary: room to read ---------- */
+.kpi-grid {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.kpi {
+  padding: 16px 16px 12px;
+  border: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-border);
+  border-left: 3px solid var(--status, var(--unknown));
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(26, 36, 60, 0.6), rgba(14, 20, 36, 0.6));
+  box-shadow: var(--glass-highlight);
+  transition: border-color 0.18s var(--ease);
+}
+
+.kpi:hover {
+  border-color: var(--glass-border-strong);
+  border-left-color: var(--status, var(--unknown));
+}
+
+.kpi-main {
+  gap: 2px;
+}
+
+.kpi-system {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.kpi-label {
+  display: block;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.kpi-figure {
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.kpi-value {
+  font-size: 40px;
+  font-weight: 620;
+  letter-spacing: -0.01em;
+}
+
+.kpi-unit {
+  color: var(--text-2);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.kpi-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.sparkline {
+  height: 64px;
+  margin-top: 0;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(92, 150, 255, 0.05), transparent);
+}
+
+.sparkline-line {
+  fill: none;
+  stroke: var(--series);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sparkline-area {
+  fill: var(--series);
+  opacity: 0.13;
+}
+
+.sparkline-dot {
+  stroke: #d6e6ff;
+  stroke-width: 7;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sparkline[data-empty] {
+  background: repeating-linear-gradient(90deg, transparent 0 6px, rgba(160, 196, 255, 0.07) 6px 7px);
+}
+
+.kpi-chart-caption {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-note {
+  margin-top: 8px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.kpi-foot {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.kpi-foot .badge,
+.kpi-foot .chip {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+.panel-body {
+  padding: 16px 18px 28px;
+  gap: 22px;
+}
+
+.panel-body h3 {
+  font-size: 16px;
+}
+
+/* ---------- Protocol and evidence, in its own window ---------- */
+.protocol-dialog .tab-view {
+  gap: 14px;
+}
+
+/* ---------- "What should I do now?" after a report ---------- */
+.guide-dialog {
+  --tier: var(--cyan);
+  border-color: color-mix(in srgb, var(--tier) 55%, transparent);
+  box-shadow:
+    var(--glass-highlight),
+    0 0 46px color-mix(in srgb, var(--tier) 16%, transparent),
+    0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+.guide-dialog[data-tier='attention'] {
+  --tier: var(--warning);
+}
+
+.guide-dialog[data-tier='immediate'] {
+  --tier: var(--critical);
+  background: linear-gradient(180deg, rgba(48, 20, 26, 0.96), rgba(20, 11, 16, 0.97));
+}
+
+.guide-dialog .res-dialog-head {
+  border-bottom-color: color-mix(in srgb, var(--tier) 40%, transparent);
+}
+
+.guide-dialog .res-dialog-head h2 {
+  color: color-mix(in srgb, var(--tier) 70%, #fff);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.guide-dialog[open] {
+  animation: guide-in 0.26s var(--ease);
+}
+
+.guide-dialog[open]::backdrop {
+  animation: guide-fade 0.26s ease-out;
+}
+
+@keyframes guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.975);
+  }
+}
+
+@keyframes guide-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.guide-banner {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--glass);
+  font-size: 13px;
+}
+
+.guide-banner-title {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guide-reported,
+.guide-lines {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-reported {
+  gap: 1px;
+  margin-top: 3px;
+  color: var(--text);
+}
+
+.guide-question {
+  font-size: 24px;
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.guide-step h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 7px;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.guide-number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 1px solid color-mix(in srgb, var(--tier) 70%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tier) 16%, transparent);
+  font-size: 12px;
+}
+
+.guide-lines {
+  gap: 7px;
+  padding-left: 31px;
+}
+
+.guide-lines li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.guide-text {
+  min-width: 0;
+}
+
+.guide-how {
+  display: block;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.guide-source {
+  flex: none;
+  padding: 1px 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.guide-source[data-source='measured'] {
+  border-color: color-mix(in srgb, var(--cyan) 50%, transparent);
+}
+
+.guide-source[data-source='protocol'],
+.guide-source[data-source='triage'] {
+  border-color: rgba(150, 196, 255, 0.5);
+  color: var(--text);
+}
+
+.guide-source[data-source='known-risk'],
+.guide-source[data-source='uncertainty'],
+.guide-source[data-source='context'] {
+  border-style: dashed;
+}
+
+.guide-none,
+.guide-surgeon {
+  padding-left: 31px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.guide-surgeon {
+  margin-top: 8px;
+}
+
+.guide-surgeon strong {
+  color: var(--text);
+}
+
+.guide-context {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.guide-context summary {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.guide-context .guide-lines {
+  margin-top: 8px;
+  padding-left: 0;
+  color: var(--text-2);
+}
+
+.guide-context .guide-lines li {
+  font-size: 13px;
+}
+
+.guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.guide-actions .button {
+  min-height: 38px;
+}
+
+/* ---------- Small screens: the drawer becomes an ordinary section again ---------- */
+@media (max-width: 1180px) {
+  #app {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+  .kpi-value {
+    font-size: 34px;
+  }
+}
+
+@media (max-width: 900px) {
+  .guide-lines li {
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #systems,
+  #systems.is-open,
+  .scan-caption,
+  .guide-dialog[open],
+  .guide-dialog[open]::backdrop,
+  .button,
+  .button-quiet,
+  .tool-toggle,
+  .tool-primary,
+  .systems-toggle {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  /* No room for a drawer over the canvas: the list opens as a section of the page instead. */
+  #systems,
+  #systems.is-open {
+    display: none;
+    width: auto;
+    transform: none;
+    visibility: visible;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition: none;
+  }
+  #systems.is-open {
+    display: block;
+  }
+}
+
+/* The actions of the guidance window stay in reach however long the guidance is. */
+.guide-actions {
+  position: sticky;
+  bottom: -18px;
+  margin: 0 -18px -18px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid var(--glass-border);
+  background: linear-gradient(180deg, rgba(14, 20, 36, 0.86), rgba(11, 16, 30, 0.98));
+}
+
+.guide-dialog[data-tier='immediate'] .guide-actions {
+  background: linear-gradient(180deg, rgba(40, 17, 23, 0.9), rgba(20, 11, 16, 0.98));
+}

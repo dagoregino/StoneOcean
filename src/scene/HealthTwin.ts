@@ -20,6 +20,11 @@ const LOOK: Record<TwinView, { suit: number; anatomy: number; scan: number }> = 
   anatomy: { suit: 0, anatomy: 1, scan: 0 },
 };
 
+/** The scanner: one pass up the body, then it is gone. It never loops. */
+export const SCAN_SECONDS = 1.15;
+/** Hovering the astronaut: how far the suit thins and how much anatomy shows through it. A hint, not an X-ray. */
+const PEEK = { suit: 0.2, anatomy: 0.5 };
+
 const BODY_HEIGHT = 1.8;
 /** What a hit on the suit is tagged with. It is not a body system and never reaches the store. */
 const SUIT_PICK_ID = 'suit';
@@ -46,6 +51,10 @@ export class HealthTwin {
   private current: TwinView = 'astronaut';
   private weightless = false;
   private drift = 0;
+  /** The one-shot scanner: `sweep` runs 0..1 up the body, `glow` is how visible the ring is. */
+  private readonly scanner = { sweep: 0, glow: 0 };
+  /** 0..1: how much the anatomy shows through the suit while the pointer is over the astronaut. */
+  private readonly peek = { amount: 0 };
 
   constructor(private readonly visuals: SystemVisuals) {
     this.root.name = 'health-twin';
@@ -119,41 +128,64 @@ export class HealthTwin {
     this.weightless = weightless;
   }
 
-  setView(view: TwinView): void {
-    if (view === this.current) return;
+  /**
+   * Changes the view. Leaving the astronaut plays the scanner once: a ring sweeps up the
+   * body while the suit thins and the anatomy comes up behind it, and the twin lands in the
+   * requested view. Returns true when the scanner was played (so the caller can caption it).
+   */
+  setView(view: TwinView): boolean {
+    if (view === this.current) return false;
     const from = this.current;
     this.current = view;
     const target = LOOK[view];
     gsap.killTweensOf(this.look);
+    gsap.killTweensOf(this.scanner);
+    this.setPeek(false);
+    this.scanner.glow = 0;
     if (this.still) {
       Object.assign(this.look, target);
-      return;
+      return from === 'astronaut';
     }
     if (from === 'astronaut') {
-      // The reveal: the suit thins out first, then the anatomy comes up through it, layer by layer.
+      this.scanner.sweep = 0;
       gsap
         .timeline()
-        .to(this.look, { suit: Math.max(target.suit, LOOK.scan.suit), duration: 0.9, ease: 'power2.inOut' }, 0)
-        .set(this.look, { scan: 1 }, 0)
-        .to(this.look, { anatomy: 1, duration: 1.9, ease: 'power1.inOut' }, 0.45)
-        .to(this.look, { suit: target.suit, scan: target.scan, duration: 0.7, ease: 'power2.out' }, 2.1);
-      return;
+        .to(this.scanner, { glow: 1, duration: 0.15, ease: 'power1.out' }, 0)
+        .to(this.scanner, { sweep: 1, duration: SCAN_SECONDS - 0.1, ease: 'power1.inOut' }, 0)
+        .to(this.look, { suit: Math.max(target.suit, 0.2), duration: 0.4, ease: 'power2.out' }, 0)
+        .to(this.look, { anatomy: 1, duration: SCAN_SECONDS - 0.2, ease: 'power1.inOut' }, 0.15)
+        .to(this.look, { suit: target.suit, scan: target.scan, duration: 0.3, ease: 'power2.out' }, SCAN_SECONDS - 0.3)
+        .to(this.scanner, { glow: 0, duration: 0.2, ease: 'power1.in' }, SCAN_SECONDS - 0.2);
+      return true;
     }
-    gsap.to(this.look, { ...target, duration: view === 'astronaut' ? 1.1 : 0.7, ease: 'power2.inOut' });
+    gsap.to(this.look, { ...target, duration: view === 'astronaut' ? 0.9 : 0.6, ease: 'power2.inOut' });
+    return false;
+  }
+
+  /**
+   * The pointer is over the astronaut (or has left it): the suit thins a little and a faint
+   * anatomy shows through, as a sign that the body can be opened. Only while the astronaut is on show.
+   */
+  setPeek(over: boolean): void {
+    const amount = over && this.current === 'astronaut' ? 1 : 0;
+    gsap.killTweensOf(this.peek);
+    if (this.still) this.peek.amount = amount;
+    else gsap.to(this.peek, { amount, duration: amount ? 0.35 : 0.5, ease: 'power2.out' });
   }
 
   update(dt: number, elapsed: number, vitals: Vitals): void {
-    this.visuals.setReveal(this.look.anatomy);
-    this.visuals.setSubdued(this.look.scan);
-    this.suit?.setOpacity(this.look.suit);
+    const peek = this.peek.amount;
+    this.visuals.setReveal(Math.max(this.look.anatomy, PEEK.anatomy * peek));
+    this.visuals.setSubdued(Math.max(this.look.scan, peek));
+    this.suit?.setOpacity(this.look.suit - PEEK.suit * peek * this.look.suit);
     this.suit?.update(elapsed, this.still ? 0 : breath(elapsed, vitals));
 
-    // A slow sweep up and down the body while it is being scanned.
-    this.scanRing.visible = this.look.scan > 0.01 && !this.still;
+    // The scanner ring exists only while its single pass is playing.
+    const glow = this.scanner.glow;
+    this.scanRing.visible = glow > 0.01;
     if (this.scanRing.visible) {
-      const sweep = 0.5 - 0.5 * Math.cos(elapsed * 0.9);
-      this.scanRing.position.y = 0.04 + sweep * BODY_HEIGHT;
-      this.scanMaterial.opacity = 0.8 * this.look.scan * Math.sin(Math.PI * Math.min(1, Math.max(0, sweep))) ** 0.5;
+      this.scanRing.position.y = 0.04 + this.scanner.sweep * BODY_HEIGHT;
+      this.scanMaterial.opacity = 0.85 * glow;
     }
 
     // Weightless drift: barely there, and eased in and out when the environment changes.
@@ -166,6 +198,8 @@ export class HealthTwin {
 
   dispose(): void {
     gsap.killTweensOf(this.look);
+    gsap.killTweensOf(this.scanner);
+    gsap.killTweensOf(this.peek);
     this.suit?.dispose();
     this.scanRing.geometry.dispose();
     this.scanMaterial.dispose();

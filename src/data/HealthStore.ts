@@ -240,7 +240,7 @@ export class HealthStore implements ReadingSink {
     this.reporting = enabled;
     if (!enabled) this.setSymptomDraft(null);
     // A spot can only be marked on a body that is on show.
-    else if (!showsAnatomy(this.view)) this.setTwinView('scan');
+    else if (!showsAnatomy(this.view)) this.setTwinView('anatomy');
     this.events.emit('reportMode', enabled);
   }
 

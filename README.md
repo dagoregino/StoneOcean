@@ -227,6 +227,22 @@ The dashboard opens on a friendly astronaut; the anatomy appears only when the c
 - The figure breathes, and drifts very slightly in microgravity (station, transit). Reduced motion turns
   both off and makes every transition immediate.
 
+### What should I do now? (after a discomfort report)
+
+Saving a report opens a window that answers that question first, in four steps: immediate action,
+recommended self-check, what to monitor, when to escalate (`src/domain/symptomGuidance.ts`,
+`src/ui/SymptomGuidanceDialog.ts`).
+
+- Nothing in it is written by the interface. Each line is taken from the triage verdict, the rules matrix,
+  the self-checks the catalog files under the reported body system, the current readings or the mission
+  environment, and carries a label saying which: measured, reported, onboard protocol, triage, self-check,
+  mission context, known mission risk, not known.
+- The hazards NASA's Human Research Program tracks for the reported body system are listed as context, with
+  a link, and never as a cause. The window says so in plain words.
+- Its color follows the triage: self-check recommended, attention recommended, immediate action required.
+  When the situation calls for the ground it offers the existing "Send to Flight Surgeon" flow, after the
+  onboard protocol, and far from Earth it says not to wait for the answer.
+
 ### Reporting discomfort on the body
 
 "Report discomfort" (above the 3D view) turns the next click on the body into a pin instead of a selection.
@@ -288,8 +304,8 @@ under the verdict: status and what to do come first, the consultation second, th
 
 ### The side panel
 
-The triage verdict stays on top; three tabs (`src/ui/panel/`) disclose the rest step by step, all following the
-body system selected in 3D:
+The triage verdict stays on top; two tabs (`src/ui/panel/`), Overview and Trends, follow the body system
+selected in 3D. Protocol and evidence open in their own window from any alert, indicator or trend:
 
 1. **Overview**: active alerts, then one compact card per indicator (value, unit, status, 7-day sparkline).
    Explanations sit behind a "?" button; mission background is folded away.

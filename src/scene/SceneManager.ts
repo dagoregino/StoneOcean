@@ -28,12 +28,15 @@ export class SceneManager {
   private framing: THREE.Box3 | null | undefined = null;
   private frame = 0;
   private cameraTween: object = {};
+  /** Reused every frame while the camera eases to a focus: nothing is allocated in the loop. */
+  private readonly focusOffset = new THREE.Vector3();
   private lastTime = 0;
   private elapsed = 0;
 
   constructor(private readonly container: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Above 1.5 the extra pixels cost far more than they show, with bloom on top.
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.renderer.toneMapping = THREE.NoToneMapping;
     this.renderer.domElement.classList.add('viewport-canvas');
     container.appendChild(this.renderer.domElement);
@@ -133,6 +136,11 @@ export class SceneManager {
     this.lastTime = performance.now();
     const loop = (time: number): void => {
       this.frame = requestAnimationFrame(loop);
+      // Nothing to draw while the tab is in the background or the 3D view is not on screen.
+      if (document.hidden || this.container.offsetParent === null) {
+        this.lastTime = time;
+        return;
+      }
       const dt = Math.min((time - this.lastTime) / 1000, 0.1);
       this.lastTime = time;
       this.elapsed += dt;
@@ -165,7 +173,7 @@ export class SceneManager {
   private stepFocus(dt: number): void {
     if (!this.focus) return;
     const ease = 1 - Math.exp(-dt * 4.5);
-    const offset = this.camera.position.clone().sub(this.controls.target);
+    const offset = this.focusOffset.copy(this.camera.position).sub(this.controls.target);
     const distance = offset.length();
     const nextDistance = distance + (this.focus.distance - distance) * ease;
     this.controls.target.lerp(this.focus.target, ease);

@@ -65,7 +65,16 @@ interface Scale {
   max: number;
 }
 
-const css = (name: string): string => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+/** Design tokens are read once: asking the browser for computed style on every redraw is wasted work. */
+const tokens = new Map<string, string>();
+function css(name: string): string {
+  let value = tokens.get(name);
+  if (value === undefined) {
+    value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    tokens.set(name, value);
+  }
+  return value;
+}
 
 /** Round tick values (1, 2, 2.5, 5 × 10ⁿ) covering a range. */
 function niceTicks({ min, max }: Scale, target: number): number[] {

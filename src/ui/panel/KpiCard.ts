@@ -17,9 +17,16 @@ export class KpiCard {
   private readonly note = h('span', { class: 'kpi-note' });
   private readonly dueChip = h('span', { class: 'chip chip-due', hidden: true }, 'Check due');
   private readonly spark = new Sparkline();
+  private readonly range = h('span', { class: 'kpi-range' });
 
-  constructor(private readonly def: IndicatorDef, actions: AppActions, showSystem: boolean, onOpen: () => void) {
-    const help = helpToggle(`About ${def.name}`, h('p', null, h('strong', null, 'Why it matters. '), def.whyItMatters), h('p', null, h('strong', null, 'How to measure. '), def.howToMeasure));
+  constructor(private readonly def: IndicatorDef, actions: AppActions, showSystem: boolean, onOpen: () => void, onProtocol: () => void) {
+    const help = helpToggle(
+      `About ${def.name}`,
+      h('p', null, h('strong', null, 'Why it matters. '), def.whyItMatters),
+      h('p', null, h('strong', null, 'How to measure. '), def.howToMeasure),
+      // The clinical detail is one step away, for whoever wants it.
+      h('button', { class: 'link-button', type: 'button', onclick: onProtocol }, 'Protocol and evidence →'),
+    );
     const selfCheck = def.acquisition === 'self-check';
 
     const input = h('input', {
@@ -71,9 +78,11 @@ export class KpiCard {
       h(
         'button',
         { class: 'kpi-main', type: 'button', title: 'Open the trend', onclick: onOpen },
-        h('span', { class: 'kpi-label' }, showSystem ? h('span', { class: 'kpi-system' }, SYSTEMS[def.systemId].name) : null, def.name),
+        // Read top to bottom: where, what, how much, how it has moved, where it is heading.
+        showSystem ? h('span', { class: 'kpi-system' }, SYSTEMS[def.systemId].name) : null,
+        h('span', { class: 'kpi-label' }, def.name),
         h('span', { class: 'kpi-figure' }, this.value, h('span', { class: 'kpi-unit' }, def.unit)),
-        this.spark.element,
+        h('span', { class: 'kpi-chart' }, this.spark.element, h('span', { class: 'kpi-chart-caption' }, h('span', null, 'Last 7 days'), this.range)),
         this.note,
       ),
       h('div', { class: 'kpi-foot' }, this.badge, this.dueChip, h('span', { class: 'kpi-spacer' }), selfCheck ? logButton : null, help.button),
@@ -90,6 +99,9 @@ export class KpiCard {
     setText(this.note, evaluation.worsening ? `${formatTrend(evaluation)} · heading out of range` : formatTrend(evaluation));
     this.note.classList.toggle('is-worsening', evaluation.worsening);
     this.dueChip.hidden = !(evaluation.due && def.acquisition === 'self-check');
-    this.spark.update(readings, now);
+    if (this.spark.update(readings, now)) {
+      const range = this.spark.range;
+      setText(this.range, range ? `${formatValue(range.min, def)} – ${formatValue(range.max, def)}${def.unit ? ` ${def.unit}` : ''}` : 'Not enough readings yet');
+    }
   }
 }

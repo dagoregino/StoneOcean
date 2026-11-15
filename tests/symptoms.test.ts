@@ -116,7 +116,7 @@ describe('twin view (store)', () => {
   it('shows the body before a spot can be marked on it', () => {
     const store = new HealthStore('iss');
     store.setReportMode(true);
-    expect(store.twinView).toBe('scan');
+    expect(store.twinView).toBe('anatomy');
   });
 
   it('does not touch the evaluation', () => {
