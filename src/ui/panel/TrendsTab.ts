@@ -1,3 +1,4 @@
+import { formatRoundTrip } from '../../domain/consult';
 import { INDICATOR_LIST, INDICATORS } from '../../domain/catalog/indicators';
 import { SYSTEMS } from '../../domain/catalog/systems';
 import { thresholdsFor } from '../../domain/engine/evaluate';
@@ -121,6 +122,10 @@ export class TrendsTab implements PanelTab {
         .filter((i) => i.indicatorId === this.indicator || i.indicatorId === compareId)
         .map((i) => ({ t: i.startedAt, kind: 'treatment' as const, label: `Treatment (${INDICATORS[i.indicatorId].name}): ${i.stepText}` })),
       ...store.symptoms.map((s) => ({ t: s.t, kind: 'symptom' as const, label: `Reported: ${SYMPTOM_TYPE_LABEL[s.type].toLowerCase()}, ${s.intensity}/10 (${SYSTEMS[s.systemId].name.toLowerCase()})` })),
+      // Flight surgeon consultations: the request and the answer, at their mission times.
+      ...store.consults.flatMap((c) =>
+        c.events.filter((e) => e.phase === 'preparing' || e.phase === 'received').map((e) => ({ t: e.t, kind: 'consult' as const, label: `${e.label} (round trip ${formatRoundTrip(c.latency.roundTripSec)})` })),
+      ),
     ];
     this.chart.update({ primary: this.series(primary), compare: compare ? this.series(compare) : null, milestones, window: lastWindow, now: evaluation.missionTime });
 
@@ -179,6 +184,7 @@ export class TrendsTab implements PanelTab {
       primary.drift ? item('limits', 'Alert limits') : null,
       kinds.has('treatment') ? item('treatment', 'Treatment') : null,
       kinds.has('symptom') ? item('symptom', 'Reported discomfort') : null,
+      kinds.has('consult') ? item('consult', 'Flight surgeon consultation') : null,
     ];
     this.legend.replaceChildren(...items.filter((el): el is HTMLElement => el !== null));
   }

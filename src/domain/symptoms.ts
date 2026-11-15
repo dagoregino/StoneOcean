@@ -1,4 +1,4 @@
-import { INDICATOR_LIST } from './catalog/indicators';
+import { INDICATOR_LIST, INDICATORS } from './catalog/indicators';
 import type { IndicatorId, MissionMinutes, SystemId } from './types';
 
 /**
@@ -45,6 +45,11 @@ export interface SymptomInput {
   intensity: number;
   type: SymptomType;
   notes?: string;
+  /**
+   * Self-checks the crew member chose to add to this report, for example after a suggestion
+   * from the notes (see `noteSuggestions.ts`). Only ever what they ticked themselves.
+   */
+  confirmedSelfChecks?: readonly IndicatorId[];
 }
 
 export interface SymptomReport {
@@ -57,7 +62,7 @@ export interface SymptomReport {
   intensity: number;
   type: SymptomType;
   notes: string;
-  /** Self-checks worth logging alongside this report (see `relatedSelfChecks`). */
+  /** Self-checks worth logging alongside this report (see `relatedSelfChecks`), plus any the crew member confirmed. */
   relatedSelfChecks: IndicatorId[];
 }
 
@@ -69,6 +74,14 @@ export interface SymptomReport {
 export function relatedSelfChecks(systemId: SystemId, type: SymptomType): IndicatorId[] {
   const ids = INDICATOR_LIST.filter((def) => def.acquisition === 'self-check' && def.systemId === systemId).map((def) => def.id);
   if (type === 'dizziness' && !ids.includes('dizziness')) ids.push('dizziness');
+  return ids;
+}
+
+/** Adds the self-checks the crew member confirmed, once each. Anything that is not a self-check is ignored. */
+function withConfirmed(ids: IndicatorId[], confirmed: readonly IndicatorId[] = []): IndicatorId[] {
+  for (const id of confirmed) {
+    if (INDICATORS[id]?.acquisition === 'self-check' && !ids.includes(id)) ids.push(id);
+  }
   return ids;
 }
 
@@ -85,6 +98,6 @@ export function createSymptomReport(id: number, t: MissionMinutes, input: Sympto
     intensity: Math.min(SYMPTOM_INTENSITY.max, Math.max(SYMPTOM_INTENSITY.min, Math.round(input.intensity))),
     type: input.type,
     notes: (input.notes ?? '').replace(/\s+/g, ' ').trim().slice(0, SYMPTOM_NOTES_MAX),
-    relatedSelfChecks: relatedSelfChecks(input.systemId, input.type),
+    relatedSelfChecks: withConfirmed(relatedSelfChecks(input.systemId, input.type), input.confirmedSelfChecks),
   };
 }

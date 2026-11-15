@@ -8,3 +8,9 @@ export const APP_SUBTITLE = 'Astronaut self-assessment console';
  */
 export const MISSION_START_MINUTES = 44 * 1440 + 8 * 60;
 export const HISTORY_DAYS = 15;
+
+/**
+ * Offline voice dictation: the Vosk model archive, relative to the app's base URL.
+ * It is a local file (see public/models/vosk/README.md); audio and text never leave the device.
+ */
+export const VOSK_MODEL_PATH = 'models/vosk/vosk-model-small-en-us-0.15.tar.gz';

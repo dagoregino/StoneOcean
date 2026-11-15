@@ -1883,6 +1883,165 @@ details p {
   display: none;
 }
 
+/* ---- Offline voice dictation (report notes) ---- */
+.mic-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.mic-button:hover:not(:disabled) {
+  border-color: var(--symptom);
+}
+
+.mic-button:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+/* A microphone drawn in CSS: no icon font, no network. */
+.mic-icon {
+  position: relative;
+  width: 8px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+}
+
+.mic-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 2px;
+  height: 3px;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+.mic-button[data-state='listening'] {
+  border-color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 22%, var(--surface));
+}
+
+.mic-button[data-state='listening'] .mic-icon {
+  border-color: #ff8a8a;
+  background: #ff8a8a;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+.mic-button[data-state='error'] {
+  border-color: var(--warning);
+}
+
+@keyframes mic-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mic-button[data-state='listening'] .mic-icon {
+    animation: none;
+  }
+}
+
+.dictation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dictation-partial {
+  padding: 6px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.dictation-committed {
+  color: var(--text);
+}
+
+.dictation-pending {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.dictation-status {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.dictation-status:empty,
+.dictation-error:empty {
+  display: none;
+}
+
+.dictation-error {
+  padding: 6px 8px;
+  border-left: 3px solid var(--warning);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.dictation-privacy {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.note-suggestions {
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+}
+
+.note-suggestions legend {
+  padding: 0 4px;
+}
+
+.note-suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.note-suggestion {
+  align-items: flex-start;
+}
+
+.note-suggestion input {
+  margin-top: 3px;
+  accent-color: var(--symptom);
+}
+
+.note-suggestion-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.note-suggestion-text strong {
+  color: var(--text);
+  font-weight: 550;
+}
+
+.note-suggestion-why {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
 .symptom-actions {
   display: flex;
   justify-content: flex-end;
@@ -1966,4 +2125,372 @@ details p {
 
 .twin-switch {
   background: rgba(13, 17, 27, 0.85);
+}
+
+/* ---------- Flight surgeon consultation (under the triage) ---------- */
+:root {
+  --earth: #4fa3e0;
+  --signal: #7fd1ff;
+}
+
+.consult {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.consult-offer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.consult-reason {
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+/* Important, but second to the verdict above it: outlined, not filled. */
+.consult-button {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 10px;
+  padding: 7px 14px 7px 10px;
+  border: 1px solid var(--earth);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--earth) 14%, var(--surface));
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.consult-button:hover {
+  background: color-mix(in srgb, var(--earth) 24%, var(--surface));
+}
+
+.consult-button-sub {
+  display: block;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.earth-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.55), transparent 40%),
+    radial-gradient(circle at 62% 58%, #3f9b5a 0 18%, transparent 19%),
+    radial-gradient(circle at 30% 70%, #3f9b5a 0 12%, transparent 13%),
+    var(--earth);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.consult-delay,
+.consult-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.consult-progress h3,
+.consult-response h3 {
+  font-size: 14.5px;
+  font-weight: 650;
+}
+
+.consult-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.consult-steps {
+  display: flex;
+  gap: 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.consult-steps li {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-3);
+}
+
+.consult-steps li[data-state='done'] {
+  background: color-mix(in srgb, var(--signal) 60%, var(--surface-3));
+}
+
+.consult-steps li[data-state='current'] {
+  background: var(--signal);
+}
+
+.consult-phase {
+  font-weight: 600;
+}
+
+.consult-timer {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.consult-countdown {
+  font-size: 22px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--signal);
+}
+
+.consult-countdown-label {
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+.consult-accelerated {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  color: var(--text-2);
+  font-size: 11.5px;
+}
+
+.consult-response {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--earth) 55%, transparent);
+  border-left: 4px solid var(--earth);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--earth) 8%, var(--surface));
+}
+
+.consult-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.consult-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.eimo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.eimo abbr {
+  text-decoration: none;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.eimo-ladder-title {
+  margin-top: 6px;
+}
+
+.eimo-ladder {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eimo-ladder li {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.eimo-ladder li.is-current {
+  border-color: var(--earth);
+  color: var(--text);
+}
+
+/* ---------- Earth in the corner of the 3D view, and the signal to it ---------- */
+.earth-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.signal-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.signal-path,
+.signal-lit {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.signal-path {
+  stroke: var(--signal);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.signal-lit {
+  stroke: var(--signal);
+  stroke-width: 1.6;
+  opacity: 0.75;
+  filter: drop-shadow(0 0 3px var(--signal));
+}
+
+.signal-habitat {
+  fill: var(--signal);
+  opacity: 0;
+}
+
+.signal-pulse {
+  visibility: hidden;
+}
+
+.signal-pulse-glow {
+  fill: var(--signal);
+  opacity: 0.25;
+}
+
+.signal-pulse-core {
+  fill: #e9f7ff;
+}
+
+.earth-link:not([data-state='idle']) .signal-path {
+  opacity: 0.45;
+}
+
+.earth-link:not([data-state='idle']) .signal-habitat {
+  opacity: 0.9;
+}
+
+.earth-link[data-state='preparing'] .signal-habitat,
+.earth-link[data-state='sending'] .signal-habitat {
+  animation: signal-blink 0.9s ease-in-out infinite;
+}
+
+.earth-link[data-state='awaiting'] .earth-globe {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 55%, transparent), 0 0 18px var(--signal);
+}
+
+.earth-link[data-state='received'] .signal-habitat {
+  animation: signal-blink 0.6s ease-in-out 3;
+}
+
+@keyframes signal-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.earth-badge {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(13, 17, 27, 0.78);
+  pointer-events: auto;
+}
+
+.earth-globe {
+  --earth-size: 32px;
+  flex: none;
+  width: var(--earth-size);
+  height: var(--earth-size);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 33% 30%, rgba(255, 255, 255, 0.5), transparent 38%),
+    radial-gradient(circle at 64% 56%, #3f9b5a 0 17%, transparent 18%),
+    radial-gradient(circle at 30% 68%, #3f9b5a 0 12%, transparent 13%),
+    radial-gradient(circle at 70% 25%, #3f9b5a 0 9%, transparent 10%),
+    var(--earth);
+  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.45), 0 0 10px rgba(79, 163, 224, 0.35);
+  transition: box-shadow 0.4s, width 0.4s, height 0.4s;
+}
+
+.earth-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.earth-label {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.earth-sublabel {
+  color: var(--text-2);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .earth-link .signal-habitat,
+  .earth-link[data-state] .signal-habitat {
+    animation: none;
+  }
+  .signal-path,
+  .earth-globe {
+    transition: none;
+  }
+}
+
+.trend-key-consult {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--earth);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--earth) 0 2px, transparent 2.5px);
+}
+
+.trend-tip-milestone[data-kind='consult'] {
+  color: var(--earth);
+}
+
+.row-consult {
+  border-left-color: var(--earth);
+  cursor: default;
+}
+
+.consult-glyph {
+  color: var(--earth);
+  font-size: 12px;
+  line-height: 1.6;
 }

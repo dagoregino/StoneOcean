@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build:model": "node tools/build-body-model.mjs assets-src/bodyparts3d assets-src/bodyparts3d/obj/isa_BP3D_4.0_obj_99 public/models/body.glb",
+    "model:vosk": "node tools/vosk/fetch-model.mjs public/models/vosk",
     "sources:smoke": "node tools/ingest/smoke.mjs data/snapshots",
     "refs:verify": "node tools/references/verify.mjs data/matrix reference_map.csv",
     "db:build": "node tools/db/build.mjs data/matrix tools/db/migrations data/crew-health.db",
@@ -25,6 +26,7 @@
     "demo:check": "node tools/demo-offline.mjs --check"
   },
   "dependencies": {
+    "@lichess-org/vosk-browser": "0.0.3",
     "gsap": "^3.15.1",
     "qrcode-generator": "^2.0.4",
     "three": "^0.187.0",

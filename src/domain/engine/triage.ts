@@ -3,7 +3,7 @@ import { severity, worstOf } from '../status';
 import type { EnvironmentDef, SystemEvaluation, SystemId, Triage } from '../types';
 
 /** Above this one-way delay a conversation with Earth is no longer practical. */
-const REALTIME_LIMIT_SEC = 5;
+export const REALTIME_LIMIT_SEC = 5;
 
 /**
  * Answers the challenge question "when does a result warrant attention from the crew or

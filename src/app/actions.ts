@@ -16,4 +16,6 @@ export interface AppActions {
   /** Discomfort marked on the 3D body goes into the mission log. */
   reportSymptom(input: SymptomInput): void;
   removeSymptom(id: number): void;
+  /** "Send to Flight Surgeon": open a consultation with the ground (see domain/consult.ts). */
+  sendToFlightSurgeon(): void;
 }

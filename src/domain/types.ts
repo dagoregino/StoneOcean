@@ -111,6 +111,11 @@ export interface EnvironmentDef {
   gravityG: number;
   /** One-way signal delay to Earth, in seconds. */
   commsDelaySec: number;
+  /**
+   * Seconds a consultation spends outside light travel, once per round trip: relays, ground
+   * stations and the time to read a short summary and answer. A demo assumption, not mission data.
+   */
+  linkHandlingSec: number;
   /** Typical dose rate in mSv/day (approximate published values). */
   radiationMSvPerDay: number;
   radiationReference: string;

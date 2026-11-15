@@ -44,9 +44,11 @@ export interface TrendSeries {
   judged: boolean;
 }
 
+const MILESTONE_GLYPH: Record<TrendMilestone['kind'], string> = { treatment: '▼', symptom: '✚', consult: '◉' };
+
 export interface TrendMilestone {
   t: MissionMinutes;
-  kind: 'treatment' | 'symptom';
+  kind: 'treatment' | 'symptom' | 'consult';
   label: string;
 }
 
@@ -253,7 +255,7 @@ export class TrendChart {
     const x = this.xOf(reading.t);
     for (const milestone of data.milestones) {
       if (Math.abs(this.xOf(milestone.t) - x) > MILESTONE_REACH_PX) continue;
-      lines.push(h('span', { class: 'trend-tip-milestone', dataset: { kind: milestone.kind } }, `${milestone.kind === 'symptom' ? '✚' : '▼'} ${milestone.label}`));
+      lines.push(h('span', { class: 'trend-tip-milestone', dataset: { kind: milestone.kind } }, `${MILESTONE_GLYPH[milestone.kind]} ${milestone.label}`));
     }
     this.tip.replaceChildren(...lines);
     this.tip.hidden = false;
@@ -422,7 +424,7 @@ export class TrendChart {
     for (const milestone of data.milestones) {
       if (milestone.t < this.start || milestone.t > now) continue;
       const mx = Math.round(this.xOf(milestone.t)) + 0.5;
-      const color = milestone.kind === 'symptom' ? SYMPTOM_COLOR : css('--text');
+      const color = milestone.kind === 'symptom' ? SYMPTOM_COLOR : milestone.kind === 'consult' ? css('--earth') : css('--text');
       ctx.save();
       ctx.strokeStyle = color;
       ctx.globalAlpha = 0.35;
@@ -442,6 +444,16 @@ export class TrendChart {
         // A cross: something was felt.
         ctx.rect(mx - 1.5, y1 - 5, 3, 10);
         ctx.rect(mx - 5, y1 - 1.5, 10, 3);
+      } else if (milestone.kind === 'consult') {
+        // A dot in a ring: a message to or from Earth.
+        ctx.arc(mx, y1, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.arc(mx, y1, 5.5, 0, Math.PI * 2);
+        ctx.stroke();
+        continue;
       } else {
         // A downward triangle: something was done.
         ctx.moveTo(mx - 5, y1 - 4);

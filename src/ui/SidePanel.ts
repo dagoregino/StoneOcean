@@ -6,6 +6,7 @@ import { INDICATORS } from '../domain/catalog/indicators';
 import { severity } from '../domain/status';
 import type { Evaluation, IndicatorId, SystemId } from '../domain/types';
 import { h, setText } from './dom';
+import { FlightSurgeonPanel } from './FlightSurgeonPanel';
 import { statusBadge, updateBadge } from './format';
 import type { PanelContext, PanelTab } from './panel/context';
 import { OverviewTab } from './panel/OverviewTab';
@@ -62,7 +63,9 @@ export class SidePanel {
       h('button', { class: 'tab', type: 'button', role: 'tab', id: `panel-tab-${tab.id}`, 'aria-controls': 'panel-tabpanel', onclick: () => this.open(tab.id) }, tab.label),
     );
     const tablist = h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'Panel sections', onkeydown: (event: KeyboardEvent) => this.onTabKey(event) }, ...this.tabButtons);
-    parent.append(this.triage, h('div', { class: 'panel-scope' }, this.back, h('div', { class: 'panel-scope-title' }, this.scopeName, this.scopeBadge)), tablist, this.body);
+    // Priority: status and what to do (triage), then the ground consultation, then the details.
+    const consult = new FlightSurgeonPanel(store, actions);
+    parent.append(this.triage, consult.element, h('div', { class: 'panel-scope' }, this.back, h('div', { class: 'panel-scope-title' }, this.scopeName, this.scopeBadge)), tablist, this.body);
 
     store.events.on('selection', (id) => {
       // An indicator stays in focus only while its own body system is the one selected.

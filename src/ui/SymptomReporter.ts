@@ -1,9 +1,12 @@
 import type { AppActions } from '../app/actions';
 import type { HealthStore } from '../data/HealthStore';
+import type { DictationController } from '../speech/DictationController';
 import { SYSTEMS } from '../domain/catalog/systems';
 import { SYMPTOM_INTENSITY, SYMPTOM_NOTES_MAX, SYMPTOM_TYPE_LABEL, SYMPTOM_TYPES, type SymptomDraft, type SymptomType } from '../domain/symptoms';
 import type { SystemId } from '../domain/types';
 import { h, setText } from './dom';
+import { NotesDictation } from './NotesDictation';
+import { SelfCheckSuggestions } from './SelfCheckSuggestions';
 
 const HINT_REPORTING = 'Click the body where you feel it · drag still rotates · Esc to cancel';
 
@@ -20,6 +23,8 @@ export class SymptomReporter {
   private readonly intensityValue = h('output', { class: 'symptom-intensity-value', for: 'symptom-intensity' });
   private readonly notes: HTMLTextAreaElement;
   private readonly error = h('p', { class: 'symptom-error', role: 'alert' });
+  private readonly suggestions = new SelfCheckSuggestions();
+  private readonly dictation: NotesDictation | null = null;
 
   constructor(
     tools: HTMLElement,
@@ -27,6 +32,8 @@ export class SymptomReporter {
     private readonly hint: HTMLElement,
     private readonly store: HealthStore,
     private readonly actions: AppActions,
+    /** Offline voice dictation for the notes; leave out to offer typing only. */
+    dictationController?: DictationController,
   ) {
     this.toggle = h(
       'button',
@@ -45,7 +52,22 @@ export class SymptomReporter {
       step: '1',
       oninput: () => this.showIntensity(),
     });
-    this.notes = h('textarea', { id: 'symptom-notes', name: 'notes', rows: 2, maxLength: SYMPTOM_NOTES_MAX, placeholder: 'When it started, what makes it better or worse…' });
+    this.notes = h('textarea', {
+      id: 'symptom-notes',
+      name: 'notes',
+      rows: 3,
+      maxLength: SYMPTOM_NOTES_MAX,
+      placeholder: 'When it started, what makes it better or worse…',
+      oninput: () => this.suggestions.update(this.notes.value),
+    });
+    if (dictationController) {
+      this.dictation = new NotesDictation({
+        controller: dictationController,
+        notes: this.notes,
+        maxLength: SYMPTOM_NOTES_MAX,
+        onInserted: () => this.suggestions.update(this.notes.value),
+      });
+    }
     this.systemField = h('div', { class: 'symptom-field' }, h('label', { for: 'symptom-system' }, 'Body system'), this.system);
 
     this.form = h(
@@ -73,7 +95,14 @@ export class SymptomReporter {
           h('label', { class: 'choice' }, h('input', { type: 'radio', name: 'type', value: type, onchange: () => (this.error.textContent = '') }), h('span', null, SYMPTOM_TYPE_LABEL[type])),
         ),
       ),
-      h('div', { class: 'symptom-field' }, h('label', { for: 'symptom-notes' }, 'Notes (optional)'), this.notes),
+      h(
+        'div',
+        { class: 'symptom-field' },
+        h('div', { class: 'symptom-label-row' }, h('label', { for: 'symptom-notes' }, 'Notes (optional)'), this.dictation?.button),
+        this.notes,
+        this.dictation?.element,
+      ),
+      this.suggestions.element,
       this.error,
       h('p', { class: 'reference' }, 'Saved to the mission log with a pin on the body. It does not change any status or alert.'),
       h(
@@ -84,6 +113,13 @@ export class SymptomReporter {
       ),
     );
     formHost.append(this.form);
+    // Inside the form, Esc first stops dictation; only a second Esc closes the report.
+    this.form.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.dictation?.handleEscape()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    });
 
     store.events.on('reportMode', (enabled) => this.applyMode(enabled));
     store.events.on('symptomDraft', (draft) => this.applyDraft(draft));
@@ -102,6 +138,8 @@ export class SymptomReporter {
 
   private applyDraft(draft: SymptomDraft | null): void {
     if (!draft) {
+      // Closing the form always releases the microphone.
+      this.dictation?.reset();
       this.form.hidden = true;
       return;
     }
@@ -111,6 +149,8 @@ export class SymptomReporter {
       this.form.reset();
       this.intensity.value = String(SYMPTOM_INTENSITY.initial);
       this.error.textContent = '';
+      this.suggestions.reset();
+      this.dictation?.reset();
     }
     this.system.replaceChildren(...draft.systems.map((id) => h('option', { value: id }, SYSTEMS[id].name)));
     this.system.disabled = draft.systems.length < 2;
@@ -127,6 +167,11 @@ export class SymptomReporter {
     event.preventDefault();
     const draft = this.store.symptomDraft;
     if (!draft) return;
+    if (this.dictation?.busy) {
+      this.error.textContent = 'Stop dictation and review the transcript before saving.';
+      this.dictation.button.focus();
+      return;
+    }
     const type = new FormData(this.form).get('type');
     if (typeof type !== 'string') {
       this.error.textContent = 'Choose the type that fits best.';
@@ -139,6 +184,8 @@ export class SymptomReporter {
       intensity: Number(this.intensity.value),
       type: type as SymptomType,
       notes: this.notes.value,
+      // Only what the crew member ticked; a keyword in the notes alone adds nothing.
+      confirmedSelfChecks: this.suggestions.confirmed(),
     });
     this.toggle.focus({ preventScroll: true });
   }

@@ -2,6 +2,7 @@ import { ENVIRONMENTS } from '../domain/catalog/environments';
 import { INDICATOR_LIST, INDICATORS } from '../domain/catalog/indicators';
 import { evaluateAll, thresholdsFor, type MonitoringContext } from '../domain/engine/evaluate';
 import { fitIndividualBaseline, usesIndividualBaseline, type IndividualBaseline } from '../domain/engine/monitor';
+import { advanceConsult, buildConsultRequest, consultReason, createConsult, isConsultActive, type ConsultPhase, type ConsultReason, type FlightSurgeonConsult } from '../domain/consult';
 import { verifyIntervention, type Intervention } from '../domain/engine/verify';
 import { INDICATOR_RULES } from '../domain/evidence/indicatorRules';
 import type { AuthorityLevel } from '../domain/evidence/types';
@@ -42,6 +43,8 @@ export interface StoreEvents extends Record<string, unknown> {
   symptomDraft: SymptomDraft | null;
   /** The twin is shown differently: astronaut, scan or anatomy. */
   twinView: TwinView;
+  /** A flight surgeon consultation was requested or moved to its next phase. */
+  consults: readonly FlightSurgeonConsult[];
 }
 
 /** Anything that produces readings writes them here. */
@@ -72,6 +75,7 @@ export class HealthStore implements ReadingSink {
   private reporting = false;
   private draft: SymptomDraft | null = null;
   private view: TwinView = 'astronaut';
+  private readonly consultLog: FlightSurgeonConsult[] = [];
   /** Individual baselines, fitted once per indicator and then frozen. */
   private readonly baselines = new Map<IndicatorId, IndividualBaseline>();
 
@@ -111,6 +115,19 @@ export class HealthStore implements ReadingSink {
   /** Real space weather (NOAA SWPC, NASA DONKI); null until it has been loaded. */
   get spaceWeather(): SpaceWeather | null {
     return this.weather;
+  }
+  /** Flight surgeon consultations, oldest first, each with its own history of events. */
+  get consults(): readonly FlightSurgeonConsult[] {
+    return this.consultLog;
+  }
+  /** The consultation still waiting for its answer, if any (one at a time). */
+  get activeConsult(): FlightSurgeonConsult | null {
+    const last = this.consultLog[this.consultLog.length - 1];
+    return last && isConsultActive(last) ? last : null;
+  }
+  /** Why the ground should be consulted now; null when the crew can handle it on board. */
+  get consultReason(): ConsultReason | null {
+    return consultReason(this.current, this.interventionLog);
   }
   /** Discomfort reported on the body, oldest first. */
   get symptoms(): readonly SymptomReport[] {
@@ -252,6 +269,32 @@ export class HealthStore implements ReadingSink {
     this.events.emit('symptoms', this.symptomLog);
   }
 
+  /**
+   * "Send to Flight Surgeon": packs the current state into a summary and opens a consultation.
+   * Only when the situation calls for it and none is already on its way. Statuses, thresholds
+   * and the triage are not touched.
+   * @param startedAtMs wall-clock time of the press, for the countdown
+   */
+  requestConsult(startedAtMs: number): FlightSurgeonConsult | null {
+    const reason = this.consultReason;
+    if (!reason || this.activeConsult) return null;
+    const request = buildConsultRequest(this.current, reason, { interventions: this.interventionLog, symptoms: this.symptomLog, plan: this.plan });
+    const consult = createConsult(this.consultLog.length + 1, this.now, startedAtMs, this.env, request);
+    this.consultLog.push(consult);
+    this.events.emit('consults', this.consultLog);
+    return consult;
+  }
+
+  /** The link reached `phase` (see `data/GroundLink.ts`). The answer arrives with `received`. */
+  advanceConsult(id: number, phase: ConsultPhase): void {
+    const index = this.consultLog.findIndex((c) => c.id === id);
+    if (index < 0) return;
+    const next = advanceConsult(this.consultLog[index], phase);
+    if (next === this.consultLog[index]) return;
+    this.consultLog[index] = next;
+    this.events.emit('consults', this.consultLog);
+  }
+
   setSpaceWeather(weather: SpaceWeather): void {
     this.weather = weather;
     this.events.emit('spaceWeather', weather);
@@ -268,9 +311,11 @@ export class HealthStore implements ReadingSink {
     this.baselines.clear();
     this.interventionLog.length = 0;
     this.symptomLog.length = 0;
+    this.consultLog.length = 0;
     this.now = now;
     this.events.emit('interventions', this.interventionLog);
     this.events.emit('symptoms', this.symptomLog);
+    this.events.emit('consults', this.consultLog);
     this.setReportMode(false);
     this.recompute();
   }

@@ -1,4 +1,5 @@
 import { formatDelay } from '../../domain/catalog/environments';
+import { CONSULT_PHASE_LABEL, formatRoundTrip, type FlightSurgeonConsult } from '../../domain/consult';
 import { INDICATORS } from '../../domain/catalog/indicators';
 import { HAZARDS } from '../../domain/catalog/systems';
 import type { Intervention } from '../../domain/engine/verify';
@@ -38,6 +39,8 @@ export class OverviewTab implements PanelTab {
   private readonly dueSection = h('section', { hidden: true }, h('h3', null, 'Self-checks due'), this.due);
   private readonly treatments = h('div', { class: 'row-list' });
   private readonly treatmentsSection = h('section', { hidden: true }, h('h3', null, 'Treatments and their verification'), this.treatments);
+  private readonly consults = h('div', { class: 'row-list' });
+  private readonly consultsSection = h('section', { hidden: true }, h('h3', null, 'Flight surgeon consultations'), this.consults);
   private readonly environment = h('div', { class: 'facts' });
   private readonly drugsToggle: HTMLInputElement;
   private readonly unsubscribe: (() => void)[];
@@ -62,11 +65,13 @@ export class OverviewTab implements PanelTab {
       h('section', null, h('h3', null, 'Reported discomfort'), this.symptoms, this.symptomsEmpty),
       this.dueSection,
       this.treatmentsSection,
+      this.consultsSection,
     );
     if (!system) this.element.append(this.missionContext());
 
-    this.unsubscribe = [store.events.on('symptoms', () => this.renderSymptoms())];
+    this.unsubscribe = [store.events.on('symptoms', () => this.renderSymptoms()), store.events.on('consults', () => this.renderConsults())];
     this.renderSymptoms();
+    this.renderConsults();
   }
 
   update(evaluation: Evaluation): void {
@@ -184,6 +189,38 @@ export class OverviewTab implements PanelTab {
       h('ul', { class: 'links' }, ...def.risks.map((risk) => h('li', null, h('a', { href: risk.url, target: '_blank', rel: 'noopener' }, risk.name)))),
     );
     return h('section', { class: 'system-intro' }, h('p', null, def.role, ' ', help.button), help.content);
+  }
+
+  /** Mission history of the consultations with the ground: what was sent, when, and the answer. */
+  private renderConsults(): void {
+    const consults = [...this.context.store.consults].reverse();
+    this.consultsSection.hidden = consults.length === 0;
+    syncList<FlightSurgeonConsult>(
+      this.consults,
+      consults,
+      (c) => `${c.id}:${c.status}`,
+      (c) =>
+        h(
+          'div',
+          { class: 'row row-consult' },
+          h('span', { class: 'consult-glyph', 'aria-hidden': 'true' }, '◉'),
+          h(
+            'span',
+            { class: 'row-text' },
+            h('strong', null, `${CONSULT_PHASE_LABEL[c.status]} · ${c.environmentName}`),
+            h('span', { class: 'row-sub' }, `${c.events.map((e) => `${e.label} ${formatWhen(e.t)}`).join(' → ')} · round trip ${formatRoundTrip(c.latency.roundTripSec)}`),
+            h(
+              'details',
+              { class: 'fold' },
+              h('summary', null, c.response ? 'Summary sent and answer' : 'Summary sent'),
+              h('ul', { class: 'consult-lines' }, ...c.request.summary.map((line) => h('li', null, line))),
+              c.response ? h('p', { class: 'row-action' }, 'Answer from Earth:') : null,
+              c.response ? h('ul', { class: 'consult-lines' }, ...c.response.lines.map((line) => h('li', null, line))) : null,
+            ),
+          ),
+        ),
+      () => undefined,
+    );
   }
 
   private renderSymptoms(): void {
