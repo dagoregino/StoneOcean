@@ -7,7 +7,8 @@
 // The browser recognizer (vosk-browser) reads a .tar.gz whose single top folder holds the
 // model; Alpha Cephei publishes .zip files, so the zip is unpacked and packed again as tar.gz.
 // The output name comes from VOSK_MODEL_PATH in src/config.ts, so the app always finds it.
-// Set VOSK_MODEL_SHA256 to check the downloaded or given archive against a known hash.
+// The official zip of the default model is checked against its known SHA-256; set
+// VOSK_MODEL_SHA256 to check another archive.
 // Needs `unzip` and `tar` on the PATH. This is a build-time step: the app never downloads
 // anything from Alpha Cephei, it only reads the file this script writes.
 import { spawnSync } from 'node:child_process';
@@ -42,11 +43,17 @@ const sh = (cmd, args, cwd) => {
   if (result.status !== 0) throw new Error(`${cmd} ${args.join(' ')} failed: ${result.stderr.trim()}`);
 };
 
-async function verify(file) {
+// SHA-256 of the official zips, checked against downloads from alphacephei.com.
+const KNOWN_ZIP_SHA256 = {
+  'vosk-model-small-en-us-0.15': '30f26242c4eb449f948e42cb302dd7a686cb29a3423a8367f99ff41780942498',
+};
+
+async function verify(file, check = true) {
   const digest = await sha256(file);
-  const expected = process.env.VOSK_MODEL_SHA256?.trim().toLowerCase();
+  const known = file.endsWith('.zip') ? KNOWN_ZIP_SHA256[modelName] : undefined;
+  const expected = check ? (process.env.VOSK_MODEL_SHA256 ?? known)?.trim().toLowerCase() : undefined;
   if (expected && expected !== digest) throw new Error(`SHA-256 mismatch for ${file}: expected ${expected}, got ${digest}`);
-  console.log(`  sha256 ${digest}  ${basename(file)}${expected ? '  (matches VOSK_MODEL_SHA256)' : ''}`);
+  console.log(`  sha256 ${digest}  ${basename(file)}${expected ? '  (verified)' : ''}`);
 }
 
 const work = mkdtempSync(join(tmpdir(), 'vosk-model-'));
@@ -57,11 +64,16 @@ try {
   if (!given) {
     console.log(`Downloading ${officialZip}`);
     const byHand = `Download ${officialZip} by hand, then run: npm run model:vosk -- path/to/${modelName}.zip`;
-    const response = await fetch(officialZip).catch((error) => {
-      throw new Error(`Could not reach alphacephei.com (${error.message}). ${byHand}`);
-    });
-    if (!response.ok) throw new Error(`Download failed: HTTP ${response.status}. ${byHand}`);
-    writeFileSync(source, Buffer.from(await response.arrayBuffer()));
+    try {
+      const response = await fetch(officialZip);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      writeFileSync(source, Buffer.from(await response.arrayBuffer()));
+    } catch (error) {
+      // Node's fetch ignores HTTPS_PROXY; curl honours it, so behind a proxy it often still works.
+      console.log(`  Node could not download it (${error.message}); trying curl.`);
+      const curl = spawnSync('curl', ['-sS', '-L', '--fail', '-o', source, officialZip], { stdio: ['ignore', 'ignore', 'pipe'], encoding: 'utf8' });
+      if (curl.status !== 0) throw new Error(`Could not reach alphacephei.com (${curl.error?.message ?? curl.stderr.trim()}). ${byHand}`);
+    }
   } else if (!existsSync(source)) {
     throw new Error(`Not found: ${source}`);
   }
@@ -89,7 +101,7 @@ try {
   }
 
   console.log(`Wrote ${output} (${(statSync(output).size / 1024 / 1024).toFixed(1)} MB)`);
-  await verify(output);
+  await verify(output, false);
   console.log('Dictation now works offline: the app serves this file itself and stores it unpacked in the browser after first use.');
 } catch (error) {
   console.error(`\n${error.message}`);

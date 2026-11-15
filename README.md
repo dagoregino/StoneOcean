@@ -125,7 +125,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm test         # rules engine and simulator tests
 npm run build    # static site in dist/
-npm run model:vosk   # optional: install the offline voice model for dictation (about 40 MB)
+npm run model:vosk   # reinstall the offline voice model for dictation (already in the repo)
 ```
 
 The build is a static site with relative paths: publish `dist/` on GitHub Pages, Vercel or
@@ -272,8 +272,9 @@ transcripts never leave the browser, and no cloud service or browser `SpeechReco
   a keyword match that ignores negations such as "no dizziness").
 - Microphone problems get a plain explanation and a way forward: permission blocked, no microphone, device busy,
   page not on https, model not installed.
-- The model (`public/models/vosk/`, about 40 MB, **not in the repository yet**: run `npm run model:vosk`) is
-  only loaded on the first press, then kept unpacked in IndexedDB for offline use. See
+- The model (`public/models/vosk/vosk-model-small-en-us-0.15.tar.gz`, 39 MB, in the repository;
+  `npm run model:vosk` reinstalls it) is only loaded on the first press, then kept unpacked in
+  IndexedDB for offline use. See
   [`public/models/vosk/README.md`](public/models/vosk/README.md).
 
 ### Send to Flight Surgeon, and why distance matters (EIMO)
