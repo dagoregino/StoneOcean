@@ -3,6 +3,9 @@ import { CLOCK_SPEEDS } from '../data/MissionClock';
 import { SCENARIOS, scenarioById } from '../data/sources/scenarios';
 import { h, setText } from './dom';
 
+/** How long the simulated loss of signal lasts. */
+const LOSS_SECONDS = 45;
+
 export interface SimulatorState {
   scenarioId: string;
   speed: number;
@@ -15,6 +18,8 @@ export class SimulatorBar {
   private readonly select: HTMLSelectElement;
   private readonly speedButtons: HTMLButtonElement[];
   private readonly autoLog: HTMLInputElement;
+  private readonly lossButton: HTMLButtonElement;
+  private linkDown = false;
 
   constructor(parent: HTMLElement, actions: AppActions, private state: SimulatorState) {
     this.select = h(
@@ -53,6 +58,13 @@ export class SimulatorBar {
       },
     });
 
+    // Demo control for the link to Earth: a short loss of signal, to show store-and-forward.
+    this.lossButton = h(
+      'button',
+      { class: 'button button-quiet', type: 'button', title: 'Earth becomes unreachable for 45 seconds; reports are queued on board and sent when the link returns.', onclick: () => actions.setLossOfSignal(this.linkDown ? null : LOSS_SECONDS) },
+      'Simulate loss of signal',
+    );
+
     parent.append(
       h(
         'div',
@@ -75,10 +87,24 @@ export class SimulatorBar {
           },
           'Restart',
         ),
+        this.lossButton,
       ),
       this.description,
     );
     this.render();
+  }
+
+  /** Shows a state that was changed from outside (the guided demo restores the simulator when it ends). */
+  sync(state: Partial<SimulatorState>): void {
+    Object.assign(this.state, state);
+    this.render();
+  }
+
+  /** The link to Earth changed: the button offers the opposite. */
+  setLinkDown(down: boolean): void {
+    this.linkDown = down;
+    setText(this.lossButton, down ? 'Restore Earth link' : 'Simulate loss of signal');
+    this.lossButton.setAttribute('aria-pressed', String(down));
   }
 
   private render(): void {

@@ -10,6 +10,7 @@ import {
   type ConsultLatency,
   type FlightSurgeonConsult,
 } from '../domain/consult';
+import { formatContactCountdown, isLinkUp } from '../domain/link';
 import { h, setText } from './dom';
 import { formatWhen } from './format';
 import { helpToggle } from './panel/help';
@@ -51,6 +52,22 @@ export class FlightSurgeonPanel {
   private readonly response: HTMLElement;
   private readonly ladder = h('ol', { class: 'eimo-ladder' });
   private timer: ReturnType<typeof setInterval> | null = null;
+  /** Shown while Earth cannot be reached: visible, never in the way. */
+  private readonly losCountdown = h('strong', { class: 'los-countdown' });
+  private readonly losQueued = h('p', { class: 'los-queued', hidden: true }, 'Report queued onboard. It will be sent automatically at the next contact.');
+  private readonly los = h(
+    'div',
+    { class: 'los-banner', hidden: true, role: 'status' },
+    h('p', { class: 'los-title' }, h('abbr', { title: 'Loss of Signal' }, 'LOS'), ' · Earth unreachable'),
+    h('p', { class: 'los-lead' }, 'Onboard protocol first.'),
+    h('p', { class: 'los-window' }, 'Next communication window: ', this.losCountdown),
+    this.losQueued,
+  );
+  private readonly aos = h('p', { class: 'aos-notice', hidden: true, role: 'status' });
+  private readonly sendLabel = h('span', { class: 'consult-button-label' }, 'Send to Flight Surgeon');
+  private losTimer: ReturnType<typeof setInterval> | null = null;
+  private aosTimer: ReturnType<typeof setTimeout> | null = null;
+  private wasDown = false;
   private dismissed = 0;
   private shownPhase = '';
 
@@ -63,7 +80,7 @@ export class FlightSurgeonPanel {
         'button',
         { class: 'consult-button', type: 'button', onclick: () => this.send() },
         h('span', { class: 'earth-icon', 'aria-hidden': 'true' }),
-        h('span', null, 'Send to Flight Surgeon', h('span', { class: 'consult-button-sub' }, 'Enviar a Tierra')),
+        h('span', null, this.sendLabel, h('span', { class: 'consult-button-sub' }, 'Enviar a Tierra')),
       ),
       this.offerDelay,
     );
@@ -89,6 +106,8 @@ export class FlightSurgeonPanel {
     this.element = h(
       'section',
       { class: 'consult', hidden: true, 'aria-label': 'Flight surgeon consultation' },
+      this.los,
+      this.aos,
       this.offer,
       this.progress,
       this.response,
@@ -101,6 +120,7 @@ export class FlightSurgeonPanel {
     store.events.on('data', () => this.render());
     store.events.on('interventions', () => this.render());
     store.events.on('environment', () => this.render());
+    store.events.on('link', () => this.render());
     this.render();
   }
 
@@ -116,7 +136,9 @@ export class FlightSurgeonPanel {
     const last = store.consults[store.consults.length - 1];
     const answered = last && !active && last.id !== this.dismissed ? last : null;
     const reason = store.consultReason;
-    this.element.hidden = !active && !answered && !reason;
+    const down = !isLinkUp(store.link);
+    this.renderLink(down);
+    this.element.hidden = !active && !answered && !reason && !down && this.aos.hidden;
     this.element.dataset.mode = active ? 'active' : answered ? 'answered' : 'offer';
     this.renderLadder();
 
@@ -124,6 +146,8 @@ export class FlightSurgeonPanel {
     if (reason && !active) {
       const latency = consultLatency(store.environment);
       setText(this.reason, reason.kind === 'critical' ? 'The triage calls for the ground.' : `Escalation: ${reason.text}.`);
+      // With no link, the same button keeps the report on board for the next contact window.
+      setText(this.sendLabel, !down ? 'Send to Flight Surgeon' : store.queuedConsult ? 'Update queued report' : 'Queue for next contact');
       setText(
         this.offerDelay,
         latency.realtime
@@ -146,6 +170,34 @@ export class FlightSurgeonPanel {
       this.shownPhase = `${answered.id}:received`;
       setText(this.announcer, 'Response received from the flight surgeon.');
     }
+  }
+
+  /** Loss of signal: the banner, its countdown, and the notice when the link returns. */
+  private renderLink(down: boolean): void {
+    const { store } = this;
+    this.los.hidden = !down;
+    this.los.dataset.state = store.link.state;
+    this.losQueued.hidden = !store.queuedConsult;
+    if (down) {
+      const tick = (): void => setText(this.losCountdown, store.link.state === 'reacquiring' ? 'reacquiring signal…' : formatContactCountdown(store.link, Date.now()));
+      tick();
+      this.losTimer ??= setInterval(tick, 1000);
+      this.wasDown = true;
+      return;
+    }
+    if (this.losTimer) clearInterval(this.losTimer);
+    this.losTimer = null;
+    if (!this.wasDown) return;
+    this.wasDown = false;
+    // AOS: say that the link is back, and whether the queued report went out with it.
+    const sent = store.missionLog.slice(-4).some((event) => event.text === 'Queued medical report transmitted');
+    this.aos.replaceChildren(h('abbr', { title: 'Acquisition of Signal' }, 'AOS'), ` · Earth link restored.${sent ? ' Queued medical report transmitted.' : ''}`);
+    this.aos.hidden = false;
+    if (this.aosTimer) clearTimeout(this.aosTimer);
+    this.aosTimer = setTimeout(() => {
+      this.aos.hidden = true;
+      this.render();
+    }, 8000);
   }
 
   private renderProgress(consult: FlightSurgeonConsult): void {

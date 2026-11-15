@@ -9,14 +9,20 @@ import { MissionClock } from './data/MissionClock';
 import { scenarioById } from './data/sources/scenarios';
 import { SimulatedSource } from './data/sources/SimulatedSource';
 import { loadSpaceWeather, snapshotSpaceWeather } from './data/spaceWeather';
+import { isLinkUp } from './domain/link';
 import { STATUS_GLYPH, STATUS_LABEL } from './domain/status';
-import { buildSymptomGuidance } from './domain/symptomGuidance';
+import { buildSymptomGuidance, GUIDANCE_TIER_TITLE } from './domain/symptomGuidance';
+import type { SymptomReport } from './domain/symptoms';
+import { MissionTour } from './demo/MissionTour';
 import type { IntroOptions } from './intro/IntroExperience';
 import { environmentFor, loadProfile, type CrewProfile } from './intro/profile';
 import type { HealthStatus } from './domain/types';
 import { BodyViewport } from './scene/BodyViewport';
 import { DictationController } from './speech/DictationController';
+import { DailyCheckIn } from './ui/DailyCheckIn';
+import type { Dialog } from './ui/dialog';
 import { h } from './ui/dom';
+import { MissionTourStage } from './ui/MissionTourStage';
 import { EarthLink } from './ui/EarthLink';
 import './ui/resources/resources.css';
 import { SidePanel } from './ui/SidePanel';
@@ -43,7 +49,7 @@ function bootstrap(profile: CrewProfile): void {
   const simulator = new SimulatedSource(clock, () => store.environment);
   simulator.connect(store);
   // The simulated link to the ground: consultations reach Earth and come back on time.
-  new GroundLink(store);
+  const groundLink = new GroundLink(store);
 
   // Real space weather: the bundled snapshot first (works offline), then the live feed.
   const offline = snapshotSpaceWeather();
@@ -81,7 +87,17 @@ function bootstrap(profile: CrewProfile): void {
     setDrugsPreauthorized: (enabled) => store.setDrugsPreauthorized(enabled),
     reportSymptom: (input) => void store.reportSymptom(input),
     removeSymptom: (id) => store.removeSymptom(id),
-    sendToFlightSurgeon: () => void store.requestConsult(Date.now()),
+    // With Earth unreachable the same button queues the report on board instead of sending it.
+    sendToFlightSurgeon: () => void (isLinkUp(store.link) ? store.requestConsult(Date.now()) : store.queueConsult()),
+    advanceMission(minutes) {
+      const STEP = 60;
+      for (let left = minutes; left > 0; left -= STEP) {
+        const previous = clock.now;
+        clock.now = previous + Math.min(STEP, left);
+        store.ingest(simulator.advance(previous, clock.now), clock.now);
+      }
+    },
+    setLossOfSignal: (seconds) => (seconds === null ? groundLink.restore() : groundLink.beginLoss(seconds * 1000)),
   };
 
   // Medical resources live in the browser's own database: they stay on this device and need no connection.
@@ -146,16 +162,57 @@ function bootstrap(profile: CrewProfile): void {
   store.events.on('symptoms', (reports) => {
     const added = reports.length > reportCount;
     reportCount = reports.length;
-    if (!added) return;
-    const guidance = buildSymptomGuidance({ report: reports[reports.length - 1], evaluation: store.evaluation, environment: store.environment, plan: store.medicalPlan, consultReason: store.consultReason });
-    openSymptomGuidance(guidance, {
-      startGuidedCheck: (ids) => sidePanel.startGuidedCheck(ids),
-      startProtocol: (id) => sidePanel.openProtocol(id),
-      // The existing consultation flow does the sending; nothing about the link is repeated here.
-      sendToFlightSurgeon: store.activeConsult ? null : actions.sendToFlightSurgeon,
-    });
+    // The guided demo shows the guidance itself, at its own moment.
+    if (!added || tour?.active) return;
+    showGuidance(reports[reports.length - 1]);
   });
-  new SimulatorBar($('simulator'), actions, simulatorState);
+  const showGuidance = (report: SymptomReport, modal = true): Dialog => {
+    const guidance = buildSymptomGuidance({ report, evaluation: store.evaluation, environment: store.environment, plan: store.medicalPlan, consultReason: store.consultReason });
+    store.logEvent({ kind: 'guidance', source: 'protocol', systemId: report.systemId, text: `Guidance displayed: ${GUIDANCE_TIER_TITLE[guidance.tier].toLowerCase()}` });
+    return openSymptomGuidance(
+      guidance,
+      {
+        startGuidedCheck: (ids) => sidePanel.startGuidedCheck(ids),
+        startProtocol: (id) => sidePanel.openProtocol(id),
+        // The existing consultation flow does the sending; nothing about the link is repeated here.
+        sendToFlightSurgeon: store.activeConsult ? null : actions.sendToFlightSurgeon,
+      },
+      { modal },
+    );
+  };
+
+  // "Play the Mission": the guided demo. It only calls the actions above; see demo/MissionTour.ts.
+  let tour: MissionTour | null = null;
+  const playMission = (): void => {
+    if (tour?.active) return;
+    showView('monitoring');
+    tour = new MissionTour({
+      actions,
+      store,
+      stage: new MissionTourStage((report) => {
+        const dialog = showGuidance(report, false);
+        return () => dialog.close();
+      }),
+      suspendSimulator() {
+        const before = { ...simulatorState };
+        actions.setSpeed(0);
+        return () => {
+          actions.setLossOfSignal(null);
+          actions.setScenario('nominal');
+          actions.resetMission();
+          actions.setSpeed(before.speed);
+          simulatorBar.sync({ scenarioId: 'nominal', speed: before.speed });
+        };
+      },
+    });
+    void tour.start();
+  };
+  $('topbar')
+    .querySelector('.main-nav')!
+    .after(h('button', { class: 'play-mission', type: 'button', onclick: playMission }, h('span', { class: 'play-mission-icon', 'aria-hidden': 'true' }, '▶'), 'Play the Mission'));
+  if (new URLSearchParams(location.search).has('demo')) playMission();
+  const simulatorBar = new SimulatorBar($('simulator'), actions, simulatorState);
+  store.events.on('link', (link) => simulatorBar.setLinkDown(!isLinkUp(link)));
   // Offline dictation for the report notes. Vosk and its model load on the first press only,
   // and the store never sees anything but the text the crew member chose to save.
   const dictation = new DictationController(async () => {
@@ -164,6 +221,7 @@ function bootstrap(profile: CrewProfile): void {
   });
   new SymptomReporter($('viewport-tools'), $('symptom-form'), $('hint'), store, actions, dictation);
   new TwinViewControl($('viewport-tools'), $('hint'), store);
+  new DailyCheckIn($('viewport-tools'), store);
   // A small Earth in the corner of the 3D view, and the signal of each consultation to it.
   new EarthLink($('stage'), store);
 

@@ -227,6 +227,46 @@ The dashboard opens on a friendly astronaut; the anatomy appears only when the c
 - The figure breathes, and drifts very slightly in microgravity (station, transit). Reduced motion turns
   both off and makes every transition immediate.
 
+### Play the Mission (guided demo)
+
+`▶ Play the Mission`, in the top bar (or `?demo` in the address), plays one health episode in about 90
+seconds: the astronaut, the scanner, a change detected, a symptom pinned on the body, "What should I do
+now?", a consultation from the station, the same consultation from Mars, the onboard protocol, and the
+verification.
+
+- `src/demo/MissionTour.ts` is a conductor only. It calls the same `AppActions` and store methods the crew
+  member uses; it holds no clinical logic and writes no reading or status of its own.
+- It is deterministic: the simulator is reseeded, the clock is stopped and mission time moves in fixed steps
+  (`AppActions.advanceMission`), so every run shows the same thing and can be recorded.
+- `src/ui/MissionTourStage.ts` draws it: subtitles (`MissionCaption`), the Detect → Act → Verify marker, the
+  station/Mars delay card, the before/action/after card, pause and skip. Skipping at any point restores a
+  fresh nominal mission in the environment the viewer had.
+
+### Loss of signal: store and forward
+
+`GroundLink` can lose the link (`beginLoss`) and get it back (`restore`); the store holds the
+`CommunicationWindow` (`src/domain/link.ts`). The simulator bar has a control for it.
+
+- While Earth is unreachable (LOS), the Earth badge says so, a banner reads "Onboard protocol first" with a
+  countdown to the next contact window, and "Send to Flight Surgeon" becomes "Queue for next contact".
+- The report is packed at once and kept on board. At acquisition of signal (AOS) it is sent automatically,
+  as it was packed. Every step is written to the mission history. The triage is not involved.
+
+### Episode record (SOAP)
+
+The store keeps a mission history (`missionLog`): status changes, reports, guidance shown, protocol steps,
+verifications, consultations and link events, each with its source. `src/domain/episode.ts` turns it into
+episodes: one opens when a body system leaves nominal and closes when it is measured back. Each is shown as
+a SOAP note (Subjective, Objective, Assessment, Plan) and a timeline, and can be exported as JSON or as a
+plain-text summary. The assessment is the status and triage the rules produced; no diagnosis is added.
+
+### Daily check-in
+
+"Daily check-in", beside the 3D view: what changed since yesterday (at most three items, only beyond the
+person's own day-to-day variation), three quick questions, and the plan for the day, assembled from tasks
+that already exist (active protocol steps, pending verifications, due self-checks, exercise targets). The
+answers are saved as given and change no status.
+
 ### What should I do now? (after a discomfort report)
 
 Saving a report opens a window that answers that question first, in four steps: immediate action,

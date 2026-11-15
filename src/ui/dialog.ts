@@ -8,7 +8,7 @@ export interface Dialog {
 }
 
 /** A modal window. Escape and the close button dismiss it; focus returns to where it was. */
-export function openDialog(title: string, body: (HTMLElement | null)[], options: { wide?: boolean; className?: string; onClose?: () => void } = {}): Dialog {
+export function openDialog(title: string, body: (HTMLElement | null)[], options: { wide?: boolean; className?: string; onClose?: () => void; modal?: boolean } = {}): Dialog {
   const opener = document.activeElement as HTMLElement | null;
   const element = h(
     'dialog',
@@ -26,7 +26,9 @@ export function openDialog(title: string, body: (HTMLElement | null)[], options:
     if (event.target === element) element.close();
   });
   document.body.append(element);
-  element.showModal();
+  // Non-modal: shown over the page without blocking it (the guided demo keeps playing behind).
+  if (options.modal === false) element.show();
+  else element.showModal();
   return { element, close: () => element.close() };
 }
 

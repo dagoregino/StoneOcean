@@ -1,5 +1,9 @@
 import { isConsultActive, phaseSchedule, type FlightSurgeonConsult } from '../domain/consult';
+import { LINK_AVAILABLE } from '../domain/link';
 import type { HealthStore } from './HealthStore';
+
+/** How long before the window opens the link is shown as coming back. */
+const REACQUIRING_MS = 3000;
 
 export interface LinkTimers {
   now(): number;
@@ -21,10 +25,38 @@ const BROWSER_TIMERS: LinkTimers = {
  */
 export class GroundLink {
   private readonly scheduled = new Map<number, unknown[]>();
+  private lossTimers: unknown[] = [];
 
   constructor(private readonly store: HealthStore, private readonly timers: LinkTimers = BROWSER_TIMERS) {
     store.events.on('consults', (consults) => this.sync(consults));
     this.sync(store.consults);
+  }
+
+  /**
+   * Loss of signal for `durationMs`: Earth is unreachable until the next contact window.
+   * Consultations already on their way keep going; new ones are queued on board by the store.
+   */
+  beginLoss(durationMs: number): void {
+    this.clearLoss();
+    const nextContactAt = this.timers.now() + durationMs;
+    this.store.setLinkWindow({ state: 'loss-of-signal', nextContactAt });
+    this.lossTimers = [
+      this.timers.setTimeout(() => this.store.setLinkWindow({ state: 'reacquiring', nextContactAt }), Math.max(0, durationMs - REACQUIRING_MS)),
+      this.timers.setTimeout(() => this.restore(), durationMs),
+    ];
+  }
+
+  /** Acquisition of signal: the link is back, and whatever waited on board is sent at once. */
+  restore(): void {
+    this.clearLoss();
+    if (this.store.link.state === 'available') return;
+    this.store.setLinkWindow(LINK_AVAILABLE);
+    this.store.transmitQueued(this.timers.now());
+  }
+
+  private clearLoss(): void {
+    this.lossTimers.forEach((handle) => this.timers.clearTimeout(handle));
+    this.lossTimers = [];
   }
 
   private sync(consults: readonly FlightSurgeonConsult[]): void {

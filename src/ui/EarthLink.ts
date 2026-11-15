@@ -63,6 +63,7 @@ export class EarthLink {
     new ResizeObserver(() => this.layout()).observe(stage);
     store.events.on('environment', () => this.renderEarth());
     store.events.on('consults', () => this.onConsults());
+    store.events.on('link', () => this.renderEarth());
     this.reducedMotion?.addEventListener?.('change', () => this.draw());
     this.renderEarth();
     this.onConsults();
@@ -73,6 +74,16 @@ export class EarthLink {
     const latency = consultLatency(env);
     const size = EARTH_SIZE[env.id];
     this.globe.style.setProperty('--earth-size', `${size}px`);
+    // Loss of signal: Earth is still there, but it cannot be reached until the next contact window.
+    const link = this.store.link.state;
+    this.root.dataset.link = link;
+    if (link !== 'available') {
+      setText(this.label, 'Earth unreachable');
+      setText(this.sublabel, link === 'reacquiring' ? 'REACQUIRING SIGNAL' : 'LOSS OF SIGNAL');
+      this.badge.setAttribute('aria-label', 'Earth unreachable: loss of signal. Reports are queued on board until the next contact window.');
+      this.layout();
+      return;
+    }
     setText(this.label, 'Earth');
     this.badge.setAttribute('aria-label', `Earth. Round trip for a consultation from ${env.shortName}: ${formatRoundTrip(latency.roundTripSec)}.`);
     if (!this.store.activeConsult) setText(this.sublabel, `Round trip ${formatRoundTrip(latency.roundTripSec)}`);
@@ -133,7 +144,9 @@ export class EarthLink {
     this.root.dataset.state = 'idle';
     this.pulse.style.visibility = 'hidden';
     this.setLit(0);
-    setText(this.sublabel, `Round trip ${formatRoundTrip(consultLatency(this.store.environment).roundTripSec)}`);
+    const link = this.store.link.state;
+    // With no link there is no round trip to quote.
+    setText(this.sublabel, link === 'available' ? `Round trip ${formatRoundTrip(consultLatency(this.store.environment).roundTripSec)}` : link === 'reacquiring' ? 'REACQUIRING SIGNAL' : 'LOSS OF SIGNAL');
   }
 
   private drawConsult(consult: FlightSurgeonConsult): void {

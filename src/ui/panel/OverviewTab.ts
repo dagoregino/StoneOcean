@@ -9,7 +9,9 @@ import { offerSteps } from '../../domain/medicalPlan';
 import { severity, STATUS_GLYPH } from '../../domain/status';
 import { SYMPTOM_TYPE_LABEL, type SymptomReport } from '../../domain/symptoms';
 import type { Evaluation, IndicatorEvaluation, SystemEvaluation } from '../../domain/types';
+import { buildEpisodes, type HealthEpisode } from '../../domain/episode';
 import { h, setText, syncList } from '../dom';
+import { openEpisodeRecord } from '../EpisodeDialog';
 import { formatValue, formatWhen } from '../format';
 import { SpaceWeatherCard } from '../SpaceWeatherCard';
 import type { PanelContext, PanelTab } from './context';
@@ -41,6 +43,8 @@ export class OverviewTab implements PanelTab {
   private readonly treatmentsSection = h('section', { hidden: true }, h('h3', null, 'Treatments and their verification'), this.treatments);
   private readonly consults = h('div', { class: 'row-list' });
   private readonly consultsSection = h('section', { hidden: true }, h('h3', null, 'Flight surgeon consultations'), this.consults);
+  private readonly episodes = h('div', { class: 'row-list' });
+  private readonly episodesSection = h('section', { hidden: true }, h('h3', null, 'Episode records'), this.episodes);
   private readonly environment = h('div', { class: 'facts' });
   private readonly drugsToggle: HTMLInputElement;
   private readonly unsubscribe: (() => void)[];
@@ -66,10 +70,12 @@ export class OverviewTab implements PanelTab {
       this.dueSection,
       this.treatmentsSection,
       this.consultsSection,
+      this.episodesSection,
     );
     if (!system) this.element.append(this.missionContext());
 
-    this.unsubscribe = [store.events.on('symptoms', () => this.renderSymptoms()), store.events.on('consults', () => this.renderConsults())];
+    this.unsubscribe = [store.events.on('symptoms', () => this.renderSymptoms()), store.events.on('consults', () => this.renderConsults()), store.events.on('missionLog', () => this.renderEpisodes())];
+    this.renderEpisodes();
     this.renderSymptoms();
     this.renderConsults();
   }
@@ -189,6 +195,35 @@ export class OverviewTab implements PanelTab {
       h('ul', { class: 'links' }, ...def.risks.map((risk) => h('li', null, h('a', { href: risk.url, target: '_blank', rel: 'noopener' }, risk.name)))),
     );
     return h('section', { class: 'system-intro' }, h('p', null, def.role, ' ', help.button), help.content);
+  }
+
+  /** Each health episode as a record: open it for the SOAP note, the timeline and the export. */
+  private renderEpisodes(): void {
+    const { system, store } = this.context;
+    const episodes = buildEpisodes(store.missionLog)
+      .filter((episode) => !system || episode.systemId === system)
+      .reverse();
+    this.episodesSection.hidden = episodes.length === 0;
+    syncList<HealthEpisode>(
+      this.episodes,
+      episodes,
+      (episode) => episode.id,
+      (episode) =>
+        h(
+          'button',
+          { class: 'row row-episode', type: 'button' },
+          h('span', { class: 'status-glyph', 'aria-hidden': 'true' }),
+          h('span', { class: 'row-text' }, h('strong', null, `${episode.id} · ${episode.systemName}`), h('span', { class: 'row-sub' }), h('span', { class: 'row-action' }, 'Open the SOAP record and timeline →')),
+        ),
+      (el, episode) => {
+        const closed = episode.outcome === 'resolved';
+        el.dataset.status = closed ? 'nominal' : 'caution';
+        setText(el.querySelector('.status-glyph')!, closed ? '●' : '▲');
+        setText(el.querySelector('.row-sub')!, `${closed ? `Closed ${formatWhen(episode.closedAt!)}` : 'Open'} · opened ${formatWhen(episode.startedAt)} · ${episode.timeline.length} entries`);
+        // The record keeps growing while the episode is open: always open the latest version.
+        (el as HTMLButtonElement).onclick = () => openEpisodeRecord(episode);
+      },
+    );
   }
 
   /** Mission history of the consultations with the ground: what was sent, when, and the answer. */

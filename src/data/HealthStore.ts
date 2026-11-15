@@ -1,13 +1,19 @@
-import { ENVIRONMENTS } from '../domain/catalog/environments';
+import { ENVIRONMENTS, formatDelay } from '../domain/catalog/environments';
 import { INDICATOR_LIST, INDICATORS } from '../domain/catalog/indicators';
 import { evaluateAll, thresholdsFor, type MonitoringContext } from '../domain/engine/evaluate';
 import { fitIndividualBaseline, usesIndividualBaseline, type IndividualBaseline } from '../domain/engine/monitor';
-import { advanceConsult, buildConsultRequest, consultReason, createConsult, isConsultActive, type ConsultPhase, type ConsultReason, type FlightSurgeonConsult } from '../domain/consult';
+import { advanceConsult, buildConsultRequest, consultReason, createConsult, isConsultActive, type ConsultPhase, type ConsultReason, type ConsultRequest, type FlightSurgeonConsult } from '../domain/consult';
+import type { DailyCheckIn, DailyCheckInInput } from '../domain/checkIn';
+import { provenanceOf } from '../domain/evidence/indicatorRules';
+import { isLinkUp, LINK_AVAILABLE, type CommunicationWindow } from '../domain/link';
+import type { MissionEvent, MissionEventInput } from '../domain/missionLog';
+import { STATUS_LABEL } from '../domain/status';
 import { verifyIntervention, type Intervention } from '../domain/engine/verify';
 import { INDICATOR_RULES } from '../domain/evidence/indicatorRules';
 import type { AuthorityLevel } from '../domain/evidence/types';
 import { DEFAULT_MEDICAL_PLAN, type MedicalPlan } from '../domain/medicalPlan';
 import { showsAnatomy, type TwinView } from '../domain/twinView';
+import { SYMPTOM_TYPE_LABEL } from '../domain/symptoms';
 import { createSymptomReport, type SymptomDraft, type SymptomInput, type SymptomReport } from '../domain/symptoms';
 import type {
   EnvironmentDef,
@@ -45,6 +51,12 @@ export interface StoreEvents extends Record<string, unknown> {
   twinView: TwinView;
   /** A flight surgeon consultation was requested or moved to its next phase. */
   consults: readonly FlightSurgeonConsult[];
+  /** The link to Earth was lost, is coming back, or is available again; or a report was queued or sent. */
+  link: CommunicationWindow;
+  /** Something was added to the mission history. */
+  missionLog: readonly MissionEvent[];
+  /** A daily check-in was completed. */
+  checkIns: readonly DailyCheckIn[];
 }
 
 /** Anything that produces readings writes them here. */
@@ -76,6 +88,12 @@ export class HealthStore implements ReadingSink {
   private draft: SymptomDraft | null = null;
   private view: TwinView = 'astronaut';
   private readonly consultLog: FlightSurgeonConsult[] = [];
+  private window: CommunicationWindow = LINK_AVAILABLE;
+  /** A consultation packed while Earth was unreachable, kept on board until the link returns. */
+  private queued: { request: ConsultRequest; queuedAt: MissionMinutes } | null = null;
+  private readonly eventLog: MissionEvent[] = [];
+  private eventSeq = 0;
+  private readonly checkInLog: DailyCheckIn[] = [];
   /** Individual baselines, fitted once per indicator and then frozen. */
   private readonly baselines = new Map<IndicatorId, IndividualBaseline>();
 
@@ -128,6 +146,21 @@ export class HealthStore implements ReadingSink {
   /** Why the ground should be consulted now; null when the crew can handle it on board. */
   get consultReason(): ConsultReason | null {
     return consultReason(this.current, this.interventionLog);
+  }
+  /** Whether Earth can be reached now, and when the next contact window opens if not. */
+  get link(): CommunicationWindow {
+    return this.window;
+  }
+  /** The consultation waiting on board for the next contact window, if any. */
+  get queuedConsult(): { request: ConsultRequest; queuedAt: MissionMinutes } | null {
+    return this.queued;
+  }
+  /** Everything that happened, oldest first: the raw material of the episode records. */
+  get missionLog(): readonly MissionEvent[] {
+    return this.eventLog;
+  }
+  get checkIns(): readonly DailyCheckIn[] {
+    return this.checkInLog;
   }
   /** Discomfort reported on the body, oldest first. */
   get symptoms(): readonly SymptomReport[] {
@@ -229,6 +262,7 @@ export class HealthStore implements ReadingSink {
       checkedAt: null,
     };
     this.interventionLog.push(intervention);
+    this.logEvent({ kind: 'treatment', source: 'protocol', systemId: INDICATORS[indicatorId].systemId, indicatorId, text: `Onboard protocol step carried out (authority level ${authorityLevel}): ${stepText}` });
     this.events.emit('interventions', this.interventionLog);
     // The drift detectors restart at the treatment, so the status has to be worked out again.
     this.recompute();
@@ -257,6 +291,7 @@ export class HealthStore implements ReadingSink {
   reportSymptom(input: SymptomInput): SymptomReport {
     const report = createSymptomReport(++this.symptomSeq, this.now, input);
     this.symptomLog.push(report);
+    this.logEvent({ kind: 'symptom', source: 'reported', systemId: report.systemId, text: `Discomfort reported: ${SYMPTOM_TYPE_LABEL[report.type].toLowerCase()}, intensity ${report.intensity} of 10${report.notes ? `. Notes: “${report.notes}”` : ''}` });
     this.events.emit('symptoms', this.symptomLog);
     this.setReportMode(false);
     return report;
@@ -277,12 +312,76 @@ export class HealthStore implements ReadingSink {
    */
   requestConsult(startedAtMs: number): FlightSurgeonConsult | null {
     const reason = this.consultReason;
-    if (!reason || this.activeConsult) return null;
+    // Nothing can be sent while Earth is unreachable: see `queueConsult`.
+    if (!reason || this.activeConsult || !isLinkUp(this.window)) return null;
     const request = buildConsultRequest(this.current, reason, { interventions: this.interventionLog, symptoms: this.symptomLog, plan: this.plan });
+    return this.openConsult(request, startedAtMs, 'Flight surgeon consultation requested');
+  }
+
+  private openConsult(request: ConsultRequest, startedAtMs: number, text: string): FlightSurgeonConsult {
     const consult = createConsult(this.consultLog.length + 1, this.now, startedAtMs, this.env, request);
     this.consultLog.push(consult);
+    this.logEvent({ kind: 'consult', source: 'ground', systemId: null, text: `${text} from ${this.env.name}` });
     this.events.emit('consults', this.consultLog);
     return consult;
+  }
+
+  // ---- loss of signal: store and forward ----
+
+  /** The link changed (see `data/GroundLink.ts`). Clinical logic is not involved. */
+  setLinkWindow(window: CommunicationWindow): void {
+    const before = this.window.state;
+    this.window = window;
+    if (before !== window.state) {
+      if (window.state === 'loss-of-signal') this.logEvent({ kind: 'link', source: 'ground', systemId: null, text: 'LOS: loss of signal. Earth unreachable; onboard protocol first' });
+      if (window.state === 'available') this.logEvent({ kind: 'link', source: 'ground', systemId: null, text: 'AOS: acquisition of signal. Earth link restored' });
+    }
+    this.events.emit('link', window);
+  }
+
+  /**
+   * Earth is unreachable: the consultation is packed now, with the state as it is now, and
+   * kept on board. Nothing is lost; `transmitQueued` sends it when the link returns.
+   */
+  queueConsult(): boolean {
+    const reason = this.consultReason;
+    if (!reason || this.activeConsult || isLinkUp(this.window)) return false;
+    const request = buildConsultRequest(this.current, reason, { interventions: this.interventionLog, symptoms: this.symptomLog, plan: this.plan });
+    const replaced = this.queued !== null;
+    this.queued = { request, queuedAt: this.now };
+    this.logEvent({ kind: 'link', source: 'ground', systemId: null, text: replaced ? 'Queued medical report updated on board' : 'Flight surgeon report queued on board for the next contact window' });
+    this.events.emit('link', this.window);
+    return true;
+  }
+
+  /** The link is back: the report that was waiting on board goes out as it was packed. */
+  transmitQueued(startedAtMs: number): FlightSurgeonConsult | null {
+    if (!this.queued || !isLinkUp(this.window) || this.activeConsult) return null;
+    const { request } = this.queued;
+    this.queued = null;
+    this.logEvent({ kind: 'link', source: 'ground', systemId: null, text: 'Queued medical report transmitted' });
+    const consult = this.openConsult(request, startedAtMs, 'Flight surgeon consultation sent');
+    this.events.emit('link', this.window);
+    return consult;
+  }
+
+  // ---- mission history ----
+
+  /** Adds an entry to the mission history. Entries restate what happened; they decide nothing. */
+  logEvent(input: MissionEventInput): MissionEvent {
+    const event: MissionEvent = { ...input, id: ++this.eventSeq, t: input.t ?? this.now };
+    this.eventLog.push(event);
+    this.events.emit('missionLog', this.eventLog);
+    return event;
+  }
+
+  /** Saves the daily check-in: what the crew member answered, as they answered it. */
+  recordCheckIn(input: DailyCheckInInput): DailyCheckIn {
+    const checkIn: DailyCheckIn = { ...input, id: this.checkInLog.length + 1, t: this.now };
+    this.checkInLog.push(checkIn);
+    this.logEvent({ kind: 'check-in', source: 'reported', systemId: null, text: `Daily check-in: sleep ${input.sleep}, feeling ${input.mood}, discomfort ${input.discomfort ? 'yes' : 'no'}` });
+    this.events.emit('checkIns', this.checkInLog);
+    return checkIn;
   }
 
   /** The link reached `phase` (see `data/GroundLink.ts`). The answer arrives with `received`. */
@@ -292,6 +391,10 @@ export class HealthStore implements ReadingSink {
     const next = advanceConsult(this.consultLog[index], phase);
     if (next === this.consultLog[index]) return;
     this.consultLog[index] = next;
+    if (phase === 'received') {
+      const received = next.events.find((e) => e.phase === 'received');
+      this.logEvent({ kind: 'consult', source: 'ground', systemId: null, t: received?.t, text: `Flight surgeon response received (round trip ${formatDelay(next.latency.roundTripSec)})` });
+    }
     this.events.emit('consults', this.consultLog);
   }
 
@@ -312,18 +415,50 @@ export class HealthStore implements ReadingSink {
     this.interventionLog.length = 0;
     this.symptomLog.length = 0;
     this.consultLog.length = 0;
+    this.eventLog.length = 0;
+    this.checkInLog.length = 0;
+    this.queued = null;
     this.now = now;
     this.events.emit('interventions', this.interventionLog);
     this.events.emit('symptoms', this.symptomLog);
     this.events.emit('consults', this.consultLog);
+    this.events.emit('missionLog', this.eventLog);
+    this.events.emit('checkIns', this.checkInLog);
+    this.events.emit('link', this.window);
     this.setReportMode(false);
     this.recompute();
   }
 
   private recompute(): void {
+    const previous = this.current;
     this.current = evaluateAll(this.readings, this.env, this.now, this.monitoring());
+    // Verification first: a treatment that worked is recorded before the status it restored.
     this.verifyPending();
+    this.recordStatusChanges(previous, this.current);
     this.events.emit('data', this.current);
+  }
+
+  /** Writes each change of a body system's status to the mission history, with the value behind it. */
+  private recordStatusChanges(previous: Evaluation, current: Evaluation): void {
+    for (const system of Object.values(current.systems)) {
+      const before = previous.systems[system.def.id].status;
+      // The first readings of a mission are not a change.
+      if (before === system.status || before === 'unknown' || system.status === 'unknown') continue;
+      // Back to nominal: report the indicator that had raised the alert, not whichever happens to lead now.
+      const was = previous.systems[system.def.id].driver?.def.id;
+      const driver = (system.status === 'nominal' && was ? system.indicators.find((i) => i.def.id === was) : undefined) ?? system.driver ?? system.indicators[0];
+      const reading = driver?.latest;
+      this.logEvent({
+        kind: 'status',
+        source: 'measured',
+        systemId: system.def.id,
+        indicatorId: driver?.def.id,
+        status: { from: before, to: system.status },
+        value: driver && reading ? `${driver.def.name} ${reading.value.toFixed(driver.def.decimals)}${driver.def.unit ? ` ${driver.def.unit}` : ''}` : undefined,
+        basis: driver ? provenanceOf(driver.def.id, Boolean(driver.drift)).basisLabel : undefined,
+        text: `${system.def.name}: ${STATUS_LABEL[before].toLowerCase()} → ${STATUS_LABEL[system.status].toLowerCase()}`,
+      });
+    }
   }
 
   /** Fits any baseline that has just become possible and pairs each with its last treatment. */
@@ -352,6 +487,14 @@ export class HealthStore implements ReadingSink {
       if (result.outcome !== 'pending') {
         Object.assign(intervention, result);
         changed = true;
+        const after = result.valueAfter === null || result.valueAfter === undefined ? '' : `: ${def.name} ${result.valueAfter.toFixed(def.decimals)}${def.unit ? ` ${def.unit}` : ''}`;
+        this.logEvent({
+          kind: 'verification',
+          source: 'measured',
+          systemId: def.systemId,
+          indicatorId: def.id,
+          text: result.outcome === 'verified' ? `Verified: measured back in range after “${intervention.stepText}”${after}` : `Not verified: still out of range after “${intervention.stepText}”${after}`,
+        });
       }
     }
     if (changed) this.events.emit('interventions', this.interventionLog);

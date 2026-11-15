@@ -10,6 +10,24 @@ import { SelfCheckSuggestions } from './SelfCheckSuggestions';
 
 const HINT_REPORTING = 'Click the body where you feel it · drag still rotates · Esc to cancel';
 
+/** Words for the 1–10 rating, so the number reads at a glance. Display only: the report keeps the number. */
+function intensityWord(value: number): string {
+  if (value <= 3) return 'Mild';
+  if (value <= 6) return 'Moderate';
+  if (value <= 8) return 'Severe';
+  return 'Very severe';
+}
+
+/** A numbered field label: the form reads top to bottom as steps. */
+const stepLabel = (step: number, text: string, forId: string | null, extra?: HTMLElement | string): HTMLElement =>
+  h(
+    forId ? 'label' : 'span',
+    { class: 'field-label', for: forId ?? undefined },
+    h('span', { class: 'field-step', 'aria-hidden': 'true' }, String(step)),
+    h('span', { class: 'field-title' }, text),
+    extra ?? null,
+  );
+
 /**
  * "Report discomfort": a toggle beside the 3D view and the small form that follows a click
  * on the body. It only talks to the store: the 3D view marks the spot, this fills in the rest.
@@ -21,6 +39,8 @@ export class SymptomReporter {
   private readonly systemField: HTMLElement;
   private readonly intensity: HTMLInputElement;
   private readonly intensityValue = h('output', { class: 'symptom-intensity-value', for: 'symptom-intensity' });
+  private readonly intensityWord = h('span', { class: 'symptom-intensity-word' });
+  private readonly notesCount = h('span', { class: 'symptom-notes-count', 'aria-hidden': 'true' });
   private readonly notes: HTMLTextAreaElement;
   private readonly error = h('p', { class: 'symptom-error', role: 'alert' });
   private readonly suggestions = new SelfCheckSuggestions();
@@ -57,18 +77,18 @@ export class SymptomReporter {
       name: 'notes',
       rows: 3,
       maxLength: SYMPTOM_NOTES_MAX,
-      placeholder: 'When it started, what makes it better or worse…',
-      oninput: () => this.suggestions.update(this.notes.value),
+      placeholder: 'e.g. Started after exercise, worse when I turn my head…',
+      oninput: () => this.onNotesChanged(),
     });
     if (dictationController) {
       this.dictation = new NotesDictation({
         controller: dictationController,
         notes: this.notes,
         maxLength: SYMPTOM_NOTES_MAX,
-        onInserted: () => this.suggestions.update(this.notes.value),
+        onInserted: () => this.onNotesChanged(),
       });
     }
-    this.systemField = h('div', { class: 'symptom-field' }, h('label', { for: 'symptom-system' }, 'Body system'), this.system);
+    this.systemField = h('div', { class: 'symptom-field' }, stepLabel(1, 'Body system', 'symptom-system'), this.system);
 
     this.form = h(
       'form',
@@ -76,40 +96,61 @@ export class SymptomReporter {
       h(
         'header',
         { class: 'symptom-form-head' },
-        h('h3', { id: 'symptom-form-title' }, 'Report discomfort'),
+        h('div', null, h('h3', { id: 'symptom-form-title' }, 'Report discomfort'), h('p', { class: 'symptom-form-sub' }, 'Where it is, how strong, what it feels like. Under a minute.')),
         h('button', { class: 'icon-button', type: 'button', 'aria-label': 'Cancel report', onclick: () => store.setReportMode(false) }, '×'),
       ),
       this.systemField,
       h(
         'div',
         { class: 'symptom-field' },
-        h('div', { class: 'symptom-label-row' }, h('label', { for: 'symptom-intensity' }, 'Intensity'), this.intensityValue),
+        h('div', { class: 'symptom-label-row' }, stepLabel(2, 'Intensity', 'symptom-intensity'), h('span', { class: 'symptom-intensity-readout' }, this.intensityValue, this.intensityWord)),
         this.intensity,
-        h('div', { class: 'symptom-scale', 'aria-hidden': 'true' }, h('span', null, '1 · barely noticeable'), h('span', null, '10 · worst imaginable')),
+        h('div', { class: 'symptom-scale', 'aria-hidden': 'true' }, h('span', null, h('strong', null, '1'), ' Barely noticeable'), h('span', null, h('strong', null, '10'), ' Worst imaginable')),
       ),
       h(
         'fieldset',
         { class: 'symptom-field symptom-types' },
-        h('legend', null, 'Type'),
-        ...SYMPTOM_TYPES.map((type) =>
-          h('label', { class: 'choice' }, h('input', { type: 'radio', name: 'type', value: type, onchange: () => (this.error.textContent = '') }), h('span', null, SYMPTOM_TYPE_LABEL[type])),
+        h('legend', null, stepLabel(3, 'Type', null, h('span', { class: 'field-hint' }, 'Pick the closest'))),
+        h(
+          'div',
+          { class: 'symptom-type-grid' },
+          ...SYMPTOM_TYPES.map((type) =>
+            h(
+              'label',
+              { class: 'choice' },
+              h('input', { type: 'radio', name: 'type', value: type, onchange: () => (this.error.textContent = '') }),
+              h('span', null, h('span', { class: 'choice-check', 'aria-hidden': 'true' }), SYMPTOM_TYPE_LABEL[type]),
+            ),
+          ),
         ),
       ),
       h(
         'div',
         { class: 'symptom-field' },
-        h('div', { class: 'symptom-label-row' }, h('label', { for: 'symptom-notes' }, 'Notes (optional)'), this.dictation?.button),
+        h('div', { class: 'symptom-label-row' }, stepLabel(4, 'Notes', 'symptom-notes', h('span', { class: 'field-hint' }, 'Optional')), this.notesCount),
         this.notes,
-        this.dictation?.element,
       ),
+      this.dictation
+        ? h(
+            'div',
+            { class: 'symptom-field symptom-voice' },
+            h('div', { class: 'symptom-label-row' }, stepLabel(5, 'Voice dictation', null, h('span', { class: 'field-hint' }, 'Instead of typing'))),
+            this.dictation.button,
+            this.dictation.element,
+          )
+        : null,
       this.suggestions.element,
       this.error,
-      h('p', { class: 'reference' }, 'Saved to the mission log with a pin on the body. It does not change any status or alert.'),
       h(
-        'div',
+        'footer',
         { class: 'symptom-actions' },
-        h('button', { class: 'button button-quiet', type: 'button', onclick: () => store.setReportMode(false) }, 'Cancel'),
-        h('button', { class: 'button button-primary', type: 'submit' }, 'Save report'),
+        h('p', { class: 'symptom-save-note' }, 'Saved to the mission log with a pin on the body. It never changes a status or an alert.'),
+        h(
+          'div',
+          { class: 'symptom-buttons' },
+          h('button', { class: 'button button-quiet', type: 'button', onclick: () => store.setReportMode(false) }, 'Cancel'),
+          h('button', { class: 'button button-primary button-save', type: 'submit' }, h('span', { class: 'button-icon-check', 'aria-hidden': 'true' }), 'Save report'),
+        ),
       ),
     );
     formHost.append(this.form);
@@ -151,6 +192,7 @@ export class SymptomReporter {
       this.error.textContent = '';
       this.suggestions.reset();
       this.dictation?.reset();
+      this.showNotesCount();
     }
     this.system.replaceChildren(...draft.systems.map((id) => h('option', { value: id }, SYSTEMS[id].name)));
     this.system.disabled = draft.systems.length < 2;
@@ -160,7 +202,24 @@ export class SymptomReporter {
   }
 
   private showIntensity(): void {
-    setText(this.intensityValue, `${this.intensity.value} / ${SYMPTOM_INTENSITY.max}`);
+    const value = Number(this.intensity.value);
+    const word = intensityWord(value);
+    setText(this.intensityValue, `${value}/${SYMPTOM_INTENSITY.max}`);
+    setText(this.intensityWord, word);
+    this.intensity.setAttribute('aria-valuetext', `${value} of ${SYMPTOM_INTENSITY.max}, ${word.toLowerCase()}`);
+    // The track fills up to the thumb, and warms as the rating rises.
+    const fraction = (value - SYMPTOM_INTENSITY.min) / (SYMPTOM_INTENSITY.max - SYMPTOM_INTENSITY.min);
+    this.intensity.style.setProperty('--fill', `${(fraction * 100).toFixed(1)}%`);
+    this.intensity.closest('.symptom-field')?.setAttribute('data-level', word.toLowerCase().replace(' ', '-'));
+  }
+
+  private onNotesChanged(): void {
+    this.suggestions.update(this.notes.value);
+    this.showNotesCount();
+  }
+
+  private showNotesCount(): void {
+    setText(this.notesCount, `${this.notes.value.length}/${SYMPTOM_NOTES_MAX}`);
   }
 
   private submit(event: Event): void {

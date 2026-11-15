@@ -18,4 +18,11 @@ export interface AppActions {
   removeSymptom(id: number): void;
   /** "Send to Flight Surgeon": open a consultation with the ground (see domain/consult.ts). */
   sendToFlightSurgeon(): void;
+  /**
+   * Moves the mission forward by a fixed amount, in whole steps, whatever the clock speed.
+   * Used by the guided demo so that the same sequence always produces the same readings.
+   */
+  advanceMission(minutes: number): void;
+  /** Demo control: Earth unreachable for this many seconds; null restores the link now. */
+  setLossOfSignal(seconds: number | null): void;
 }

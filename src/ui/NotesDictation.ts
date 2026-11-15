@@ -5,19 +5,22 @@ import type { DictationState } from '../speech/types';
 import { h, setText } from './dom';
 
 interface ButtonView {
+  /** Large line on the button. */
   text: string;
+  /** Short hint under it: what a tap does now. */
+  hint: string;
   label: string;
   pressed: boolean;
   disabled: boolean;
 }
 
 const BUTTON: Record<DictationState, ButtonView> = {
-  idle: { text: 'Dictate', label: 'Dictate notes: start offline voice dictation', pressed: false, disabled: false },
-  loading: { text: 'Loading…', label: 'Loading the offline voice model. Press to cancel.', pressed: false, disabled: false },
-  listening: { text: 'Stop', label: 'Stop dictation', pressed: true, disabled: false },
-  processing: { text: 'Finishing…', label: 'Finishing the transcript', pressed: true, disabled: true },
-  ready: { text: 'Dictate', label: 'Dictate more notes', pressed: false, disabled: false },
-  error: { text: 'Try again', label: 'Try voice dictation again', pressed: false, disabled: false },
+  idle: { text: 'Dictate', hint: 'Tap to speak · describe the symptom with your voice', label: 'Dictate notes: start offline voice dictation', pressed: false, disabled: false },
+  loading: { text: 'Preparing the voice model…', hint: 'A few seconds the first time · tap to cancel', label: 'Loading the offline voice model. Press to cancel.', pressed: false, disabled: false },
+  listening: { text: 'Listening… tap to stop', hint: 'Speak naturally · Esc also stops', label: 'Stop dictation', pressed: true, disabled: false },
+  processing: { text: 'Processing…', hint: 'Turning your words into text', label: 'Finishing the transcript', pressed: true, disabled: true },
+  ready: { text: 'Transcript ready', hint: 'Review it in the notes above · tap to add more', label: 'Dictate more notes', pressed: false, disabled: false },
+  error: { text: 'Try again', hint: 'Dictation could not start · see why below', label: 'Try voice dictation again', pressed: false, disabled: false },
 };
 
 const STATUS: Record<DictationState, string> = {
@@ -47,6 +50,7 @@ export class NotesDictation {
   readonly button: HTMLButtonElement;
   readonly element: HTMLElement;
   private readonly buttonText = h('span', { class: 'mic-button-text' });
+  private readonly buttonHint = h('span', { class: 'mic-button-hint' });
   private readonly status = h('p', { class: 'dictation-status', id: 'dictation-status', role: 'status' });
   private readonly partial = h('p', { class: 'dictation-partial', hidden: true });
   private readonly committed = h('span', { class: 'dictation-committed' });
@@ -66,8 +70,8 @@ export class NotesDictation {
         'aria-describedby': 'dictation-status dictation-privacy',
         onclick: () => void controller.toggle(),
       },
-      h('span', { class: 'mic-icon', 'aria-hidden': 'true' }),
-      this.buttonText,
+      h('span', { class: 'mic-orb', 'aria-hidden': 'true' }, h('span', { class: 'mic-icon' })),
+      h('span', { class: 'mic-button-copy' }, this.buttonText, this.buttonHint),
     );
     // The live words are for sighted users; screen readers get the state changes and the final text.
     this.partial.setAttribute('aria-hidden', 'true');
@@ -109,8 +113,11 @@ export class NotesDictation {
   private render(snapshot: DictationSnapshot): void {
     const { state } = snapshot;
     const view = BUTTON[state];
-    setText(this.buttonText, view.text);
-    this.button.setAttribute('aria-label', view.label);
+    const nothingHeard = state === 'ready' && !snapshot.transcript;
+    setText(this.buttonText, nothingHeard ? 'Nothing recognized' : view.text);
+    setText(this.buttonHint, nothingHeard ? 'Tap to try again, closer to the microphone' : view.hint);
+    // The accessible name starts with the visible words (WCAG "label in name"), then says what a press does.
+    this.button.setAttribute('aria-label', `${nothingHeard ? 'Nothing recognized' : view.text}. ${view.label}`);
     this.button.setAttribute('aria-pressed', String(view.pressed));
     this.button.disabled = view.disabled;
     this.button.dataset.state = state;
