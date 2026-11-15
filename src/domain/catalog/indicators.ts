@@ -339,7 +339,8 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     thresholds: { nominal: { min: 90, max: 115 }, caution: { min: 70, max: 130 } },
     whyItMatters:
       'Eating below your requirement speeds up muscle and bone loss and weakens immunity. Appetite often drops in flight.',
-    howToMeasure: 'Scan each food package in the meal tracker. The app compares the day’s total with your personal target.',
+    howToMeasure:
+      'Add up today’s intake from your meal log and enter it as a percentage of your daily target (100 = on target). In a mission, the food tracker would provide this number.',
     guidance: {
       caution: [
         'Add a snack between meals today.',
