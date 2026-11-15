@@ -461,6 +461,16 @@ Other references for the simulator and reference ranges:
 - The body is one adult male. Meshes are simplified for the web, and the lung outlines, lymph
   nodes and inner ears are approximations added by this project.
 - Frame rate on low-end graphics has not been measured.
+- **Manual readings carry no measurement context.** The app does not know whether a value was
+  taken at rest or after exercise, fasting or after a meal, and it stamps the reading with the
+  time it was saved, not the time it was measured. A pulse taken right after exercise is
+  therefore compared against a resting baseline.
+
+## Future work
+
+- A **context selector** for heart rate and blood pressure (at rest, after exercise…), so a reading
+  is compared with others taken in the same conditions.
+- A **"measured at"** field, to record a measurement taken earlier with its real time.
 
 ## Use of AI tools
 
