@@ -5,6 +5,8 @@ live health indicators, and its status drives its color on an interactive 3D bod
 Built for the NASA Space Apps Challenge 2026, challenge
 *Create Health Monitoring Software for Astronauts on Space Missions*.
 
+**Live demo:** https://dagoregino.github.io/StoneOcean/ (add `?demo` to play the guided mission).
+
 
 ## What it does
 
@@ -130,6 +132,15 @@ npm run model:vosk   # reinstall the offline voice model for dictation (already 
 
 The build is a static site with relative paths: publish `dist/` on GitHub Pages, Vercel or
 Netlify as is.
+
+### Deployment
+
+Every push to `main` runs the tests, builds the app and publishes `dist/` to GitHub Pages
+(`.github/workflows/deploy.yml`); it can also be started by hand from the Actions tab. The build
+uses relative paths (`base: './'`), so it works under `/StoneOcean/`. The offline voice model
+(`public/models/vosk/`, about 41 MB) is copied to `dist/` and stays under GitHub's 100 MB file limit.
+
+One-time setup, by a repository admin: **Settings → Pages → Source: GitHub Actions**.
 
 ### Rebuilding the 3D model (optional)
 
