@@ -29,6 +29,7 @@ import {
 } from '../../domain/resources/types';
 import { h } from '../dom';
 import { confirmDialog, download, field, formatDate, formatDateTime, levelBadge, openDialog, qrCode, selectInput, showErrors, textInput, toast, type Field } from './kit';
+import { movementIcon, movementSign } from './visuals';
 
 const TYPE_LABELS = new Map(knownItemTypes().map((t) => [t.typeCode, t.label]));
 /** A kind of item in words: the protocol's own name for it when it has one. */
@@ -328,6 +329,57 @@ export function openResourceDetail(store: ResourceStore, user: string, resourceI
     ],
     { wide: true },
   );
+}
+
+// ---------- One movement ----------
+
+/** Everything recorded for one movement. Movements are a record: they are read, never edited. */
+export function openMovementDetail(store: ResourceStore, user: string, movementId: string): void {
+  const movement = store.movements.find((m) => m.id === movementId);
+  if (!movement) return;
+  const resource = store.resource(movement.resourceId);
+  const unit = resource?.unit ?? 'units';
+  const fact = (label: string, value: string | null | undefined): HTMLElement | null => (value ? h('div', { class: 'res-fact' }, h('dt', null, label), h('dd', null, value)) : null);
+  const dialog = openDialog(`${MOVEMENT_LABEL[movement.type]} · ${movement.resourceName}`, [
+    h(
+      'div',
+      { class: 'res-move-hero', dataset: { type: movement.type } },
+      movementIcon(movement.type),
+      h('div', null, h('p', { class: 'res-move-hero-qty' }, `${movementSign(movement.type)}${movement.quantity} ${unit}`), h('p', { class: 'res-id' }, `${MOVEMENT_LABEL[movement.type]} · ${formatDateTime(movement.at)}`)),
+    ),
+    h(
+      'dl',
+      { class: 'res-facts' },
+      fact('Resource', `${movement.resourceName} · ${movement.resourceId}`),
+      fact('On board after', `${movement.balance.quantity} ${unit}`),
+      movement.balance.reserved > 0 ? fact('Reserved after', `${movement.balance.reserved} ${unit}`) : null,
+      fact('Recorded by', movement.user),
+      fact('When', formatDateTime(movement.at)),
+      fact('Reason', movement.reason),
+      fact('Notes', movement.notes),
+      fact('Record', movement.id),
+    ),
+    h('p', { class: 'res-field-hint' }, MOVEMENT_HELP[movement.type]),
+    h(
+      'div',
+      { class: 'res-form-actions res-form-actions-start' },
+      resource
+        ? h(
+            'button',
+            {
+              class: 'button',
+              type: 'button',
+              onclick: () => {
+                dialog.close();
+                openResourceDetail(store, user, resource.id);
+              },
+            },
+            'Open resource',
+          )
+        : null,
+      h('button', { class: 'button button-quiet', type: 'button', onclick: () => dialog.close() }, 'Close'),
+    ),
+  ]);
 }
 
 // ---------- Find by code / scan ----------
