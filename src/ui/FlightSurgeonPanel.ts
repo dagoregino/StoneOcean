@@ -80,7 +80,7 @@ export class FlightSurgeonPanel {
         'button',
         { class: 'consult-button', type: 'button', onclick: () => this.send() },
         h('span', { class: 'earth-icon', 'aria-hidden': 'true' }),
-        h('span', null, this.sendLabel, h('span', { class: 'consult-button-sub' }, 'Enviar a Tierra')),
+        h('span', null, this.sendLabel, h('span', { class: 'consult-button-sub' }, 'Consult the ground')),
       ),
       this.offerDelay,
     );
