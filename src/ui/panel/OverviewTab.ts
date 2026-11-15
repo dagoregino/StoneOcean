@@ -50,7 +50,7 @@ export class OverviewTab implements PanelTab {
     const evaluation = store.evaluation;
     const indicators = system ? evaluation.systems[system].indicators : Object.values(evaluation.systems).flatMap((s) => s.indicators);
     for (const indicator of indicators) {
-      const card = new KpiCard(indicator.def, actions, !system, () => context.openTrend(indicator.def.id));
+      const card = new KpiCard(indicator.def, actions, !system, () => context.openTrend(indicator.def.id), () => context.openProtocol(indicator.def.id));
       this.cards.set(indicator.def.id, card);
       this.kpis.append(card.element);
     }

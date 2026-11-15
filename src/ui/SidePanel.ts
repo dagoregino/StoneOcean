@@ -5,6 +5,7 @@ import { formatDelay } from '../domain/catalog/environments';
 import { INDICATORS } from '../domain/catalog/indicators';
 import { severity } from '../domain/status';
 import type { Evaluation, IndicatorId, SystemId } from '../domain/types';
+import { openDialog, type Dialog } from './dialog';
 import { h, setText } from './dom';
 import { FlightSurgeonPanel } from './FlightSurgeonPanel';
 import { statusBadge, updateBadge } from './format';
@@ -23,14 +24,15 @@ const TRIAGE_ICON: Record<string, string> = {
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'trends', label: 'Trends' },
-  { id: 'protocol', label: 'Protocol & evidence' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
 /**
- * Right column. The triage verdict stays on top; below it, three tabs disclose detail step
- * by step: the overview (what is happening), the trend (how it got here) and the protocol
- * with its evidence (what to do and why). All three follow the body system selected in 3D.
+ * Right column, in the order the crew member asks: how am I (the triage verdict, always on
+ * top), what changed and where (Overview), am I improving (Trends). The clinical detail,
+ * protocol and evidence, is one step further: it opens in its own window from any alert,
+ * indicator or trend, so it never crowds the first screen. Everything follows the body
+ * system selected in 3D.
  */
 export class SidePanel {
   private readonly triage = h('section', { class: 'triage', 'aria-live': 'polite' });
@@ -46,9 +48,13 @@ export class SidePanel {
   private view: PanelTab | null = null;
   private tab: TabId = 'overview';
   private indicator: IndicatorId | null = null;
+  /** The protocol window while it is open: it keeps following the live data. */
+  private protocol: { tab: ProtocolTab; dialog: Dialog } | null = null;
+  /** True when data arrived while the panel was not on screen: it is brought up to date when it returns. */
+  private stale = false;
 
   constructor(
-    parent: HTMLElement,
+    private readonly parent: HTMLElement,
     private readonly store: HealthStore,
     private readonly actions: AppActions,
     private readonly resources: ResourceStore,
@@ -70,12 +76,9 @@ export class SidePanel {
     store.events.on('selection', (id) => {
       // An indicator stays in focus only while its own body system is the one selected.
       if (this.indicator && INDICATORS[this.indicator].systemId !== id) this.indicator = null;
-      // A system that needs attention opens on what to do about it, not on a summary.
+      // A system that needs attention opens on its overview: the alert and its first step are at the top.
       const system = id ? store.evaluation.systems[id] : null;
-      if (system?.driver && severity(system.status) >= severity('caution')) {
-        this.tab = 'protocol';
-        this.indicator = system.driver.def.id;
-      }
+      if (system?.driver && severity(system.status) >= severity('caution')) this.tab = 'overview';
       this.show();
     });
     store.events.on('data', (evaluation) => this.update(evaluation));
@@ -87,6 +90,65 @@ export class SidePanel {
     // The live feed answers once, shortly after start: rebuild the view to show it.
     store.events.on('spaceWeather', () => this.show());
     this.show();
+  }
+
+  /** Brings the panel up to date after it was off screen (another section was open). */
+  refresh(): void {
+    if (!this.stale) return;
+    this.stale = false;
+    this.update(this.store.evaluation);
+  }
+
+  /**
+   * Protocol and evidence for one indicator (or a whole body system), in its own window.
+   * It is the same Detect -> Treat -> Verify detail as before, moved out of the main tabs.
+   */
+  openProtocol(indicator: IndicatorId | null, system: SystemId | null = indicator ? INDICATORS[indicator].systemId : this.store.selected): void {
+    this.protocol?.dialog.close();
+    const tab = new ProtocolTab({
+      store: this.store,
+      actions: this.actions,
+      resources: this.resources,
+      openResources: () => {
+        this.protocol?.dialog.close();
+        this.openResources();
+      },
+      system,
+      indicator,
+      openTrend: (id) => {
+        this.protocol?.dialog.close();
+        this.open('trends', id);
+      },
+      openProtocol: (id) => this.openProtocol(id),
+      openSystem: (id) => this.openProtocol(null, id),
+    });
+    const dialog = openDialog('Protocol and evidence', [tab.element], {
+      wide: true,
+      className: 'protocol-dialog',
+      onClose: () => {
+        tab.dispose();
+        if (this.protocol?.tab === tab) this.protocol = null;
+      },
+    });
+    this.protocol = { tab, dialog };
+    tab.update(this.store.evaluation);
+  }
+
+  /** Opens the overview on a self-check's own card with its logging form ready. */
+  startGuidedCheck(indicatorIds: IndicatorId[]): void {
+    const first = indicatorIds[0];
+    if (!first) return;
+    const systemId = INDICATORS[first].systemId;
+    this.tab = 'overview';
+    this.indicator = null;
+    if (this.store.selected === systemId) this.show();
+    else this.store.select(systemId);
+    const input = document.getElementById(`log-${first}`) as HTMLInputElement | null;
+    const form = input?.closest('form');
+    if (!input || !form) return;
+    form.hidden = false;
+    input.scrollIntoView({ block: 'center' });
+    input.focus({ preventScroll: true });
   }
 
   private open(tab: TabId, indicator: IndicatorId | null = this.indicator): void {
@@ -107,10 +169,10 @@ export class SidePanel {
       system: store.selected,
       indicator: this.indicator,
       openTrend: (id) => this.open('trends', id),
-      openProtocol: (id) => this.open('protocol', id),
+      openProtocol: (id) => this.openProtocol(id),
       openSystem: (id) => this.openSystem(id),
     };
-    this.view = this.tab === 'overview' ? new OverviewTab(context) : this.tab === 'trends' ? new TrendsTab(context) : new ProtocolTab(context);
+    this.view = this.tab === 'overview' ? new OverviewTab(context) : new TrendsTab(context);
     this.body.replaceChildren(this.view.element);
     this.body.scrollTop = 0;
     this.body.setAttribute('aria-labelledby', `panel-tab-${this.tab}`);
@@ -129,6 +191,12 @@ export class SidePanel {
   }
 
   private update(evaluation: Evaluation): void {
+    // Nobody is looking (another section is open): skip the work and catch up later.
+    if (this.parent.offsetParent === null) {
+      this.stale = true;
+      return;
+    }
+    this.protocol?.tab.update(evaluation);
     const { triage } = evaluation;
     const env = this.store.environment;
     this.triage.dataset.status = triage.status;

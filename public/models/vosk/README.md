@@ -10,10 +10,11 @@ The app expects one file here, named by `VOSK_MODEL_PATH` in `src/config.ts`:
 public/models/vosk/vosk-model-small-en-us-0.15.tar.gz
 ```
 
-**The file is not in the repository yet.** Until it is, the microphone button explains that the
-model is not installed, and typing works as before.
+The file is in the repository (39 MB): the official `vosk-model-small-en-us-0.15.zip`, SHA-256
+`30f26242c4eb449f948e42cb302dd7a686cb29a3423a8367f99ff41780942498`, repacked as tar.gz. If it is
+ever missing, the microphone button says the model is not installed, and typing still works.
 
-## Installing it
+## Installing it again (or another model)
 
 ```bash
 npm run model:vosk
@@ -28,8 +29,9 @@ elsewhere and pass it in:
 npm run model:vosk -- path/to/vosk-model-small-en-us-0.15.zip
 ```
 
-Set `VOSK_MODEL_SHA256` to have the script check the archive against a hash you trust; it
-always prints the SHA-256 of what it read and wrote.
+The official zip of this model is checked against its known SHA-256; set `VOSK_MODEL_SHA256`
+to check another archive. Behind a proxy that Node's `fetch` ignores, the script downloads with
+`curl` instead.
 
 To ship the model with a static deployment (GitHub Pages, Vercel…), commit this file or add the
 step above to the deployment build: Vite copies `public/` into `dist/` as it is.

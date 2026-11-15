@@ -10,6 +10,7 @@ import { scenarioById } from './data/sources/scenarios';
 import { SimulatedSource } from './data/sources/SimulatedSource';
 import { loadSpaceWeather, snapshotSpaceWeather } from './data/spaceWeather';
 import { STATUS_GLYPH, STATUS_LABEL } from './domain/status';
+import { buildSymptomGuidance } from './domain/symptomGuidance';
 import type { IntroOptions } from './intro/IntroExperience';
 import { environmentFor, loadProfile, type CrewProfile } from './intro/profile';
 import type { HealthStatus } from './domain/types';
@@ -20,6 +21,7 @@ import { EarthLink } from './ui/EarthLink';
 import './ui/resources/resources.css';
 import { SidePanel } from './ui/SidePanel';
 import { SimulatorBar, type SimulatorState } from './ui/SimulatorBar';
+import { openSymptomGuidance } from './ui/SymptomGuidanceDialog';
 import { SymptomReporter } from './ui/SymptomReporter';
 import './ui/styles.css';
 import { SystemList } from './ui/SystemList';
@@ -91,6 +93,7 @@ function bootstrap(profile: CrewProfile): void {
   // Main navigation: the monitoring console and the medical resources share the top bar.
   type View = 'monitoring' | 'resources';
   let resourcesView: Promise<unknown> | undefined;
+  let onMonitoringShown = (): void => {};
   const alertCount = h('span', { class: 'nav-count', hidden: true });
   const navButtons: Record<View, HTMLButtonElement> = {
     monitoring: h('button', { class: 'nav-item', type: 'button', onclick: () => showView('monitoring') }, 'Monitoring'),
@@ -104,6 +107,7 @@ function bootstrap(profile: CrewProfile): void {
       else button.removeAttribute('aria-current');
     }
     if (location.hash !== (view === 'resources' ? '#resources' : '')) history.replaceState(null, '', view === 'resources' ? '#resources' : location.pathname + location.search);
+    if (view === 'monitoring') onMonitoringShown();
     if (view === 'resources') {
       $('resources').scrollTop = 0;
       // The screens load the first time they are opened; the inventory itself is already in memory.
@@ -133,8 +137,24 @@ function bootstrap(profile: CrewProfile): void {
       h('span', { class: 'crew-chip-name' }, profile.name),
     ),
   );
-  new SystemList($('systems'), store);
-  new SidePanel($('panel'), store, actions, resources, () => showView('resources'));
+  new SystemList($('systems'), store, $('hud'));
+  const sidePanel = new SidePanel($('panel'), store, actions, resources, () => showView('resources'));
+  onMonitoringShown = () => sidePanel.refresh();
+
+  // A saved discomfort report is answered at once with "what should I do now?".
+  let reportCount = store.symptoms.length;
+  store.events.on('symptoms', (reports) => {
+    const added = reports.length > reportCount;
+    reportCount = reports.length;
+    if (!added) return;
+    const guidance = buildSymptomGuidance({ report: reports[reports.length - 1], evaluation: store.evaluation, environment: store.environment, plan: store.medicalPlan, consultReason: store.consultReason });
+    openSymptomGuidance(guidance, {
+      startGuidedCheck: (ids) => sidePanel.startGuidedCheck(ids),
+      startProtocol: (id) => sidePanel.openProtocol(id),
+      // The existing consultation flow does the sending; nothing about the link is repeated here.
+      sendToFlightSurgeon: store.activeConsult ? null : actions.sendToFlightSurgeon,
+    });
+  });
   new SimulatorBar($('simulator'), actions, simulatorState);
   // Offline dictation for the report notes. Vosk and its model load on the first press only,
   // and the store never sees anything but the text the crew member chose to save.

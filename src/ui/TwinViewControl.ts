@@ -1,9 +1,11 @@
 import type { HealthStore } from '../data/HealthStore';
-import { TWIN_VIEW_LABEL, TWIN_VIEWS, type TwinView } from '../domain/twinView';
+import { TWIN_VIEW_LABEL, type TwinView } from '../domain/twinView';
+
+const SWITCH_VIEWS: readonly TwinView[] = ['astronaut', 'anatomy'];
 import { h, setText } from './dom';
 
 const HINT: Record<TwinView, string> = {
-  astronaut: 'Drag to rotate · scroll to zoom · explore your body to see each system',
+  astronaut: 'Drag to rotate · scroll to zoom · click the astronaut to scan and open the anatomy',
   scan: 'Drag to rotate · scroll to zoom · click a body system to look closer',
   anatomy: 'Drag to rotate · scroll to zoom · click a body system, click again to go deeper',
 };
@@ -25,11 +27,12 @@ export class TwinViewControl {
   constructor(tools: HTMLElement, private readonly hint: HTMLElement, private readonly store: HealthStore) {
     this.explore = h(
       'button',
-      { class: 'tool-primary', type: 'button', onclick: () => store.setTwinView('scan') },
+      { class: 'tool-primary', type: 'button', onclick: () => store.setTwinView('anatomy') },
       h('span', { class: 'tool-primary-icon', 'aria-hidden': 'true' }),
       'Explore my body',
     );
-    this.buttons = TWIN_VIEWS.map((view) => h('button', { class: 'segment', type: 'button', title: VIEW_TITLE[view], onclick: () => store.setTwinView(view) }, TWIN_VIEW_LABEL[view]));
+    // The scanner is a moment on the way to the anatomy, not a place to stay: it is not offered as a view.
+    this.buttons = SWITCH_VIEWS.map((view) => h('button', { class: 'segment', type: 'button', title: VIEW_TITLE[view], onclick: () => store.setTwinView(view) }, TWIN_VIEW_LABEL[view]));
     this.switcher = h('div', { class: 'segmented twin-switch', role: 'group', 'aria-label': 'View of the body' }, ...this.buttons);
     tools.prepend(this.explore, this.switcher);
     store.events.on('twinView', () => this.render());
@@ -46,9 +49,9 @@ export class TwinViewControl {
     const hadFocus = document.activeElement === this.explore || this.buttons.includes(document.activeElement as HTMLButtonElement);
     this.explore.hidden = !resting;
     this.switcher.hidden = resting;
-    this.buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(TWIN_VIEWS[i] === view)));
+    this.buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(SWITCH_VIEWS[i] === view || (view === 'scan' && SWITCH_VIEWS[i] === 'anatomy'))));
     if (!this.store.reportMode) setText(this.hint, HINT[view]);
     // Keep the keyboard where it was when one control replaces the other.
-    if (hadFocus) (resting ? this.explore : this.buttons[TWIN_VIEWS.indexOf(view)]).focus({ preventScroll: true });
+    if (hadFocus) (resting ? this.explore : this.buttons[1]).focus({ preventScroll: true });
   }
 }

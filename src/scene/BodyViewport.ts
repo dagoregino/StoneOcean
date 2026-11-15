@@ -6,7 +6,7 @@ import type { TwinView } from '../domain/twinView';
 import { SYSTEM_IDS, type Evaluation, type SystemId } from '../domain/types';
 import { createBackdrop } from './backdrop';
 import type { BodyModel, Vitals } from './BodyModel';
-import { HealthTwin } from './HealthTwin';
+import { HealthTwin, SCAN_SECONDS } from './HealthTwin';
 import { Picker } from './Picker';
 import { RadiationField } from './RadiationField';
 import { SceneManager } from './SceneManager';
@@ -41,6 +41,8 @@ export class BodyViewport {
   private readonly symptomMarkers = new SymptomMarkers();
   private readonly tooltip: HTMLDivElement;
   private readonly notice: HTMLDivElement;
+  private readonly scanCaption: HTMLDivElement;
+  private scanTimers: number[] = [];
   private readonly bounds = new Map<SystemId, THREE.Box3>();
   private readonly vitals: Vitals = { heartRateBpm: 62, breathsPerMinute: 14 };
   private readonly unsubscribe: (() => void)[] = [];
@@ -62,7 +64,11 @@ export class BodyViewport {
     this.notice = document.createElement('div');
     this.notice.className = 'viewport-notice';
     this.notice.setAttribute('role', 'status');
-    container.append(this.tooltip, this.notice);
+    this.scanCaption = document.createElement('div');
+    this.scanCaption.className = 'scan-caption';
+    this.scanCaption.setAttribute('role', 'status');
+    this.scanCaption.hidden = true;
+    container.append(this.tooltip, this.notice, this.scanCaption);
 
     this.picker = new Picker(
       this.scene.renderer.domElement,
@@ -116,8 +122,10 @@ export class BodyViewport {
     this.twin.dispose();
     this.model?.dispose();
     this.scene.dispose();
+    this.scanTimers.forEach((timer) => window.clearTimeout(timer));
     this.tooltip.remove();
     this.notice.remove();
+    this.scanCaption.remove();
   }
 
   private async loadModel(url: string): Promise<void> {
@@ -182,8 +190,8 @@ export class BodyViewport {
   /** Clicking the same spot again steps to the next system underneath ("go deeper"). */
   private pick(stack: SystemId[], surface: THREE.Vector3 | null): void {
     if (this.store.twinView === 'astronaut') {
-      // A click on the astronaut is the same invitation as the button: explore the body.
-      if (stack.length > 0) this.store.setTwinView('scan');
+      // A click on the astronaut scans it and opens the anatomy: no stop in between.
+      if (stack.length > 0) this.store.setTwinView('anatomy');
       return;
     }
     if (this.store.reportMode) {
@@ -216,15 +224,37 @@ export class BodyViewport {
   }
 
   private applyView(view: TwinView): void {
-    const leavingAstronaut = this.twin.view === 'astronaut';
-    this.twin.setView(view);
+    const scanned = this.twin.setView(view);
     this.symptomMarkers.object.visible = view !== 'astronaut';
-    // Starting to explore: bring the figure round to face the viewer, whole body in frame.
-    if (leavingAstronaut && !this.store.selected) this.scene.faceFront(this.reducedMotion ? 0 : 1.6);
+    if (scanned) {
+      this.captionScan();
+      // Bring the figure round to face the viewer while the scanner passes, whole body in frame.
+      if (!this.store.selected) this.scene.faceFront(this.reducedMotion ? 0 : SCAN_SECONDS);
+    }
     if (view === 'astronaut') {
       this.tooltip.hidden = true;
       this.scene.focusOn(null);
     }
+  }
+
+  /** Says what the scanner is doing, then gets out of the way: two short lines, shown once. */
+  private captionScan(): void {
+    this.scanTimers.forEach((timer) => window.clearTimeout(timer));
+    const scanMs = this.reducedMotion ? 0 : SCAN_SECONDS * 1000;
+    const show = (text: string, done: boolean): void => {
+      this.scanCaption.textContent = text;
+      this.scanCaption.classList.toggle('is-done', done);
+      this.scanCaption.hidden = false;
+    };
+    if (scanMs > 0) show('Scanning crew member…', false);
+    this.scanTimers = [
+      window.setTimeout(() => show('Body systems mapped', true), scanMs),
+      window.setTimeout(() => this.scanCaption.classList.add('is-leaving'), scanMs + 650),
+      window.setTimeout(() => {
+        this.scanCaption.hidden = true;
+        this.scanCaption.classList.remove('is-leaving', 'is-done');
+      }, scanMs + 900),
+    ];
   }
 
   private applySymptoms(): void {
