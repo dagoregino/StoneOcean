@@ -23,6 +23,8 @@ import { DailyCheckIn } from './ui/DailyCheckIn';
 import type { Dialog } from './ui/dialog';
 import { h } from './ui/dom';
 import { MissionTourStage } from './ui/MissionTourStage';
+import type { TutorialController } from './tutorial/TutorialController';
+import { assistantAvatar, shouldOfferTutorial, TutorialPrompt } from './tutorial/TutorialPrompt';
 import { EarthLink } from './ui/EarthLink';
 import './ui/resources/resources.css';
 import { SidePanel } from './ui/SidePanel';
@@ -138,6 +140,21 @@ function bootstrap(profile: CrewProfile): void {
     alertCount.setAttribute('aria-label', `${open} open alerts`);
   });
   showView(location.hash === '#resources' ? 'resources' : 'monitoring');
+  // The interface tour ("how do I use HELIOS?"): offered once, replayable from the top bar.
+  // It is a layer over the page and loads only when someone takes it.
+  let tutorial: TutorialController | null = null;
+  const startTutorial = (): void => {
+    if (tour?.active || tutorial?.active) return;
+    tutorialPrompt.hide();
+    void import('./tutorial/TutorialController').then(({ TutorialController }) => {
+      tutorial = new TutorialController({ showMonitoring: () => showView('monitoring') });
+      tutorial.start();
+    });
+  };
+  const tutorialPrompt = new TutorialPrompt(startTutorial);
+  $('topbar').append(
+    h('button', { class: 'tour-help', type: 'button', title: 'Replay the interface tour', 'aria-label': 'Replay the interface tour', onclick: startTutorial }, assistantAvatar('sm'), h('span', { class: 'tour-help-label' }, 'Tour')),
+  );
   // The crew member's name doubles as the way back to the introduction.
   $('topbar').append(
     h(
@@ -185,6 +202,9 @@ function bootstrap(profile: CrewProfile): void {
   let tour: MissionTour | null = null;
   const playMission = (): void => {
     if (tour?.active) return;
+    // The two never run together: the tour explains the screen, the mission tells a story.
+    tutorial?.end();
+    tutorialPrompt.hide();
     showView('monitoring');
     tour = new MissionTour({
       actions,
@@ -211,6 +231,9 @@ function bootstrap(profile: CrewProfile): void {
     .querySelector('.main-nav')!
     .after(h('button', { class: 'play-mission', type: 'button', onclick: playMission }, h('span', { class: 'play-mission-icon', 'aria-hidden': 'true' }, '▶'), 'Play the Mission'));
   if (new URLSearchParams(location.search).has('demo')) playMission();
+  else if (shouldOfferTutorial()) offerTutorialWhenSettled(() => {
+    if (!tour?.active && !tutorial?.active) tutorialPrompt.show();
+  });
   const simulatorBar = new SimulatorBar($('simulator'), actions, simulatorState);
   store.events.on('link', (link) => simulatorBar.setLinkDown(!isLinkUp(link)));
   // Offline dictation for the report notes. Vosk and its model load on the first press only,
@@ -248,6 +271,25 @@ function bootstrap(profile: CrewProfile): void {
 }
 
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
+
+/**
+ * Offers the tour a moment after the dashboard is on screen, never over the introduction.
+ * The introduction loads on its own schedule, so it is checked again right before offering.
+ */
+function offerTutorialWhenSettled(offer: () => void): void {
+  const introOnScreen = (): boolean => document.querySelector('.intro') !== null;
+  const afterIntro = (): void => {
+    const watcher = new MutationObserver(() => {
+      if (introOnScreen()) return;
+      watcher.disconnect();
+      wait();
+    });
+    watcher.observe(document.body, { childList: true });
+  };
+  const wait = (): void => void setTimeout(() => (introOnScreen() ? afterIntro() : offer()), 1400);
+  if (introOnScreen()) afterIntro();
+  else wait();
+}
 
 /**
  * First visit: the introduction, then the app. Later visits go straight to the app

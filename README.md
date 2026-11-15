@@ -317,7 +317,21 @@ transcripts never leave the browser, and no cloud service or browser `SpeechReco
   IndexedDB for offline use. See
   [`public/models/vosk/README.md`](public/models/vosk/README.md).
 
-### Send to Flight Surgeon, and why distance matters (EIMO)
+### The interface tour (how to use HELIOS)
+
+On a first visit a small HELIOS assistant appears in the bottom-right corner and offers a
+30-second tour. It never starts on its own and does not block the dashboard. The tour lights up
+six things in turn (the Health Twin, Astronaut / Anatomy, Body Systems, Report discomfort,
+Trends, Medical Resources), about 4.5 s each, with Back, Next, Skip, pause and Esc. Clicking the
+highlighted control works as usual and moves the tour on; what a step opens for a moment (the
+Body Systems drawer, the Trends tab) is put back afterwards.
+
+It answers "how do I use HELIOS?"; Play the Mission answers "why does it matter?". The tour only
+points at Play the Mission at the end and never starts it, and starting Play the Mission closes
+the tour. "Don't show again" is remembered in `localStorage` (`helios-tutorial-seen`); the
+**Tour** button in the top bar replays it any time. Code: `src/tutorial/`.
+
+, and why distance matters (EIMO)
 
 When the triage escalates to the ground (a critical finding), or a treatment was not verified and
 the protocol says "move to the next authority level", a **Send to Flight Surgeon** button appears
