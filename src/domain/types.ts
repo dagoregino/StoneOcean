@@ -67,8 +67,14 @@ export interface IndicatorDef {
   acquisition: 'sensor' | 'self-check';
   /** How often a fresh value is expected. Older than this = measurement due. */
   cadenceHours: number;
-  /** Axis range used by charts and input validation. */
+  /** Axis range used by charts: where values usually fall. Not a limit on what can be recorded. */
   display: Range;
+  /**
+   * What a body or an instrument can really produce: the limit for DATA ENTRY. A value outside
+   * it is a typing or unit mistake and is not saved. It is not a clinical threshold: it never
+   * decides whether a value is nominal, caution or critical. It always contains `display`.
+   */
+  plausible: Range;
   thresholds: Thresholds;
   whyItMatters: string;
   howToMeasure: string;

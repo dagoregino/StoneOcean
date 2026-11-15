@@ -23,6 +23,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 1,
     display: { min: 35, max: 135 },
+    plausible: { min: 20, max: 250 },
     thresholds: { nominal: { min: 50, max: 100 }, caution: { min: 40, max: 120 } },
     whyItMatters:
       'A resting rate that drifts up over days can signal deconditioning, dehydration, infection or poor sleep before you feel it.',
@@ -50,6 +51,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'self-check',
     cadenceHours: 24,
     display: { min: 70, max: 190 },
+    plausible: { min: 50, max: 260 },
     thresholds: { nominal: { min: 90, max: 129 }, caution: { min: 85, max: 159 } },
     whyItMatters:
       'Fluid shifts and vessel changes alter blood pressure in flight. Low values also predict fainting when gravity returns.',
@@ -78,6 +80,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 24,
     display: { min: 0, max: 100 },
+    plausible: { min: 0, max: 600 },
     thresholds: { nominal: { min: 45, max: INF }, caution: { min: 20, max: INF } },
     whyItMatters:
       'Loading the skeleton is the main defense against bone loss. Missed sessions cannot be made up later in the mission.',
@@ -106,6 +109,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 24,
     display: { min: 0, max: 80 },
+    plausible: { min: 0, max: 600 },
     thresholds: { nominal: { min: 30, max: INF }, caution: { min: 15, max: INF } },
     whyItMatters:
       'Muscle and aerobic fitness fade fast without load. You need both for spacewalks and to walk unaided after landing.',
@@ -134,6 +138,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 1,
     display: { min: 84, max: 100 },
+    plausible: { min: 50, max: 100 },
     thresholds: { nominal: { min: 95, max: 100 }, caution: { min: 90, max: 100 } },
     whyItMatters:
       'Falling oxygen saturation can be the first sign of a cabin atmosphere problem or of a lung issue.',
@@ -161,6 +166,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 24,
     display: { min: 2, max: 10 },
+    plausible: { min: 0, max: 24 },
     thresholds: { nominal: { min: 7, max: 10 }, caution: { min: 5, max: 12 } },
     whyItMatters:
       'Sleep loss in flight is common but not inevitable: Standard Measures data on 19 station crew members show 7.33 h in flight against 7.87 h before. Judge your sleep against your own baseline and trend.',
@@ -188,6 +194,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'self-check',
     cadenceHours: 24,
     display: { min: 1, max: 10 },
+    plausible: { min: 1, max: 10 },
     thresholds: { nominal: { min: 6, max: 10 }, caution: { min: 4, max: 10 } },
     whyItMatters:
       'Months of isolation and confinement affect mood and motivation. A daily rating makes slow changes visible early.',
@@ -215,6 +222,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'self-check',
     cadenceHours: 72,
     display: { min: 0, max: 10 },
+    plausible: { min: 0, max: 10 },
     thresholds: { nominal: { min: 0, max: 2 }, caution: { min: 0, max: 5 } },
     whyItMatters:
       'SANS can blur near vision and swell the optic nerve head. Catching a change early leaves time for countermeasures.',
@@ -243,6 +251,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'self-check',
     cadenceHours: 24,
     display: { min: 0, max: 10 },
+    plausible: { min: 0, max: 10 },
     thresholds: { nominal: { min: 0, max: 2 }, caution: { min: 0, max: 5 } },
     whyItMatters:
       'The balance system must readapt after every gravity change. Disorientation makes piloting, driving and spacewalks unsafe.',
@@ -270,6 +279,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 2,
     display: { min: 34.5, max: 40 },
+    plausible: { min: 30, max: 44 },
     thresholds: { nominal: { min: 36, max: 37.5 }, caution: { min: 35, max: 38.4 } },
     whyItMatters:
       'Fever is often the first measurable sign of infection or of a reactivated virus, and infections spread fast in a closed habitat.',
@@ -297,6 +307,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'self-check',
     cadenceHours: 24,
     display: { min: 40, max: 280 },
+    plausible: { min: 20, max: 600 },
     thresholds: { nominal: { min: 70, max: 140 }, caution: { min: 54, max: 250 } },
     whyItMatters:
       'Glucose shows whether energy intake matches demand. Inactivity and stress can also reduce insulin sensitivity in flight.',
@@ -324,10 +335,12 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'self-check',
     cadenceHours: 24,
     display: { min: 40, max: 140 },
+    plausible: { min: 0, max: 300 },
     thresholds: { nominal: { min: 90, max: 115 }, caution: { min: 70, max: 130 } },
     whyItMatters:
       'Eating below your requirement speeds up muscle and bone loss and weakens immunity. Appetite often drops in flight.',
-    howToMeasure: 'Scan each food package in the meal tracker. The app compares the day’s total with your personal target.',
+    howToMeasure:
+      'Add up today’s intake from your meal log and enter it as a percentage of your daily target (100 = on target). In a mission, the food tracker would provide this number.',
     guidance: {
       caution: [
         'Add a snack between meals today.',
@@ -351,6 +364,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 6,
     display: { min: 0, max: 650 },
+    plausible: { min: 0, max: 5000 },
     thresholds: doseThresholds(MISSION_DOSE_BUDGET_MSV),
     whyItMatters:
       'Dose only goes up. Tracking it against the mission budget tells you when shielding and schedule changes are worth their cost.',
@@ -378,6 +392,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 1,
     display: { min: 0, max: 8 },
+    plausible: { min: 0, max: 40 },
     // Official limit: 3 mmHg. Off-nominal limits are set per program, so exceeding 3 is
     // "caution" and nothing here is "critical" until a program limit is configured.
     thresholds: { nominal: { min: 0, max: 3 }, caution: { min: 0, max: INF } },
@@ -407,6 +422,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'self-check',
     cadenceHours: 336,
     display: { min: -20, max: 90 },
+    plausible: { min: -150, max: 300 },
     thresholds: { nominal: { min: -20, max: 19 }, caution: { min: -20, max: 54 } },
     whyItMatters:
       'Swelling of the optic nerve head is the earliest measurable sign of SANS and can appear before you notice any change in vision.',
@@ -435,6 +451,7 @@ export const INDICATORS: Record<IndicatorId, IndicatorDef> = {
     acquisition: 'sensor',
     cadenceHours: 1,
     display: { min: 0, max: 2500 },
+    plausible: { min: 0, max: 1000000 },
     // NOAA S-scale: S1 from 10 pfu, S3 from 1,000 pfu.
     thresholds: { nominal: { min: 0, max: 9.99 }, caution: { min: 0, max: 999.99 } },
     whyItMatters:

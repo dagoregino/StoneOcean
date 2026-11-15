@@ -5,6 +5,8 @@ live health indicators, and its status drives its color on an interactive 3D bod
 Built for the NASA Space Apps Challenge 2026, challenge
 *Create Health Monitoring Software for Astronauts on Space Missions*.
 
+**Live demo:** https://dagoregino.github.io/StoneOcean/ (add `?demo` to play the guided mission).
+
 
 ## What it does
 
@@ -130,6 +132,15 @@ npm run model:vosk   # reinstall the offline voice model for dictation (already 
 
 The build is a static site with relative paths: publish `dist/` on GitHub Pages, Vercel or
 Netlify as is.
+
+### Deployment
+
+Every push to `main` runs the tests, builds the app and publishes `dist/` to GitHub Pages
+(`.github/workflows/deploy.yml`); it can also be started by hand from the Actions tab. The build
+uses relative paths (`base: './'`), so it works under `/StoneOcean/`. The offline voice model
+(`public/models/vosk/`, about 41 MB) is copied to `dist/` and stays under GitHub's 100 MB file limit.
+
+One-time setup, by a repository admin: **Settings → Pages → Source: GitHub Actions**.
 
 ### Rebuilding the 3D model (optional)
 
@@ -356,6 +367,29 @@ selected in 3D. Protocol and evidence open in their own window from any alert, i
 3. **Protocol & evidence**: the collapsible Detect → Treat → Verify loop, authority levels, citations and
    evidence class, for the selected indicator or system only.
 
+### Logging a value by hand
+
+Every indicator has two ranges that are **not** clinical thresholds (`src/domain/types.ts`):
+
+- `display`: where values usually fall. It sets the scale of the charts.
+- `plausible`: what a body or an instrument can really produce. It is the limit for data entry.
+
+`checkManualValue` (`src/domain/manualEntry.ts`) checks what is typed, in the dashboard and in
+`POST /measurements` alike:
+
+| Typed value | What happens |
+| --- | --- |
+| Not a number | Refused, with a message next to the field |
+| Outside `plausible` (400 bpm) | Not saved; the message names the unit and the accepted range |
+| Inside `plausible`, outside `display` (150 bpm) | Saved only after "Save anyway"; the API saves it and answers `"unusual": true` |
+| Inside `display` | Saved |
+
+A value is saved exactly as typed (rounded to the indicator's precision), never clipped. What it
+means, nominal, caution or critical, is then decided by the same rules as for any other reading.
+A likely unit mistake gets a hint: glucose typed in mmol/L, temperature typed in °F. On the charts,
+a point beyond `display` is drawn at the edge with a mark (▲ above, ▼ below) and the readout shows
+its real value. The `plausible` ranges are project parameters, not published limits.
+
 ### Medical Resources (HELIOS Resource Intelligence)
 
 A second section of the app, next to Monitoring in the top bar: what is on board, what state it is in, who is
@@ -438,6 +472,16 @@ Other references for the simulator and reference ranges:
 - The body is one adult male. Meshes are simplified for the web, and the lung outlines, lymph
   nodes and inner ears are approximations added by this project.
 - Frame rate on low-end graphics has not been measured.
+- **Manual readings carry no measurement context.** The app does not know whether a value was
+  taken at rest or after exercise, fasting or after a meal, and it stamps the reading with the
+  time it was saved, not the time it was measured. A pulse taken right after exercise is
+  therefore compared against a resting baseline.
+
+## Future work
+
+- A **context selector** for heart rate and blood pressure (at rest, after exercise…), so a reading
+  is compared with others taken in the same conditions.
+- A **"measured at"** field, to record a measurement taken earlier with its real time.
 
 ## Use of AI tools
 

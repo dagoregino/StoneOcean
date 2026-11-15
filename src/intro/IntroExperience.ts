@@ -18,9 +18,9 @@ export interface IntroOptions {
 }
 
 const LINES = [
-  'Cuando tu cuerpo sale de la Tierra...',
-  '...el espacio comienza a transformarlo.',
-  'Comprende los cambios. Monitorea tu salud. Cuida de ti.',
+  'When your body leaves Earth...',
+  '...space begins to change it.',
+  'Understand the changes. Monitor your health. Take care of yourself.',
 ];
 const MAX_NAME_LENGTH = 40;
 
@@ -74,10 +74,10 @@ class IntroExperience {
       'div',
       { class: 'intro-brand' },
       h('h1', { class: 'intro-title' }, 'HELIOS'),
-      h('p', { class: 'intro-subtitle' }, 'Tu compañero de salud durante cada misión.'),
+      h('p', { class: 'intro-subtitle' }, 'Your health companion on every mission.'),
     );
-    this.startButton = h('button', { class: 'intro-button intro-button-primary', type: 'button', onclick: () => this.leaveFilm() }, 'Comenzar mi misión');
-    this.skipButton = h('button', { class: 'intro-button intro-button-quiet', type: 'button', onclick: () => this.leaveFilm() }, 'Omitir introducción');
+    this.startButton = h('button', { class: 'intro-button intro-button-primary', type: 'button', onclick: () => this.leaveFilm() }, 'Start my mission');
+    this.skipButton = h('button', { class: 'intro-button intro-button-quiet', type: 'button', onclick: () => this.leaveFilm() }, 'Skip introduction');
     this.cinema = h(
       'section',
       { class: 'intro-cinema' },
@@ -90,7 +90,7 @@ class IntroExperience {
 
     this.root = h(
       'div',
-      { class: 'intro', lang: 'es', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Introducción de HELIOS', tabIndex: -1 },
+      { class: 'intro', lang: 'en', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'HELIOS introduction', tabIndex: -1 },
       canvas,
       h('div', { class: 'intro-scrim', 'aria-hidden': 'true' }),
       this.cinema,
@@ -201,7 +201,7 @@ class IntroExperience {
       class: 'intro-input',
       type: 'text',
       name: 'name',
-      placeholder: 'Escribe tu nombre',
+      placeholder: 'Type your name',
       autocomplete: 'given-name',
       maxLength: MAX_NAME_LENGTH,
       enterKeyHint: 'next',
@@ -221,7 +221,7 @@ class IntroExperience {
           event.preventDefault();
           const name = input.value.replace(/\s+/g, ' ').trim();
           if (!name) {
-            error.textContent = 'Escribe tu nombre para continuar.';
+            error.textContent = 'Type your name to continue.';
             input.setAttribute('aria-invalid', 'true');
             input.focus();
             return;
@@ -229,12 +229,12 @@ class IntroExperience {
           this.swapStep(this.habitatStep(name));
         },
       },
-      h('h2', { class: 'intro-card-title' }, 'Bienvenido a bordo.'),
-      h('p', { class: 'intro-card-lead' }, 'Antes de comenzar, queremos conocerte.'),
-      h('label', { class: 'intro-label', for: 'intro-name' }, '¿Cómo te llamas?'),
+      h('h2', { class: 'intro-card-title' }, 'Welcome aboard.'),
+      h('p', { class: 'intro-card-lead' }, 'Before we begin, we would like to know you.'),
+      h('label', { class: 'intro-label', for: 'intro-name' }, 'What is your name?'),
       input,
       error,
-      h('div', { class: 'intro-card-actions' }, h('button', { class: 'intro-button intro-button-primary', type: 'submit' }, 'Continuar')),
+      h('div', { class: 'intro-card-actions' }, h('button', { class: 'intro-button intro-button-primary', type: 'submit' }, 'Continue')),
     );
   }
 
@@ -261,15 +261,15 @@ class IntroExperience {
           done(typeof choice === 'string' ? (choice as HabitatId) : null);
         },
       },
-      h('p', { class: 'intro-eyebrow' }, 'Opcional'),
-      h('h2', { class: 'intro-card-title', id: 'intro-habitat-title' }, '¿Dónde transcurre tu misión?'),
+      h('p', { class: 'intro-eyebrow' }, 'Optional'),
+      h('h2', { class: 'intro-card-title', id: 'intro-habitat-title' }, 'Where does your mission take place?'),
       h('div', { class: 'intro-habitats', role: 'radiogroup', 'aria-labelledby': 'intro-habitat-title' }, ...options),
-      h('p', { class: 'intro-card-note' }, 'Tu entorno puede influir en los riesgos para tu salud. Puedes cambiarlo cuando quieras.'),
+      h('p', { class: 'intro-card-note' }, 'Your environment can affect the risks to your health. You can change it whenever you like.'),
       h(
         'div',
         { class: 'intro-card-actions' },
-        h('button', { class: 'intro-button intro-button-quiet', type: 'button', onclick: () => done(null) }, 'Ahora no'),
-        h('button', { class: 'intro-button intro-button-primary', type: 'submit' }, 'Continuar'),
+        h('button', { class: 'intro-button intro-button-quiet', type: 'button', onclick: () => done(null) }, 'Not now'),
+        h('button', { class: 'intro-button intro-button-primary', type: 'submit' }, 'Continue'),
       ),
     );
   }
@@ -293,8 +293,8 @@ class IntroExperience {
     saveProfile(profile);
     this.enter(profile);
 
-    const hello = h('h2', { class: 'intro-greeting-title' }, `¡Hola, ${profile.name}!`);
-    const next = h('p', { class: 'intro-greeting-text' }, 'Vamos a conocer cómo está tu cuerpo hoy.');
+    const hello = h('h2', { class: 'intro-greeting-title' }, `Hello, ${profile.name}!`);
+    const next = h('p', { class: 'intro-greeting-text' }, 'Let’s see how your body is doing today.');
     this.greeting.replaceChildren(hello, next);
     this.fade(this.welcome, false);
     this.moveScene(SCENE.greeting, 3);

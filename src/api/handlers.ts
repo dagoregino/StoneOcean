@@ -1,3 +1,4 @@
+import { checkManualValue } from '../domain/manualEntry';
 import { formatMissionTime } from '../data/MissionClock';
 import { SCENARIOS } from '../data/sources/scenarios';
 import { INDICATORS } from '../domain/catalog/indicators';
@@ -230,9 +231,11 @@ export function handle(runtime: MissionRuntime, request: ApiRequest): ApiRespons
     const { indicatorId, value } = body;
     if (!isIndicator(indicatorId)) return fail(400, 'indicatorId is missing or unknown');
     if (typeof value !== 'number' || !Number.isFinite(value)) return fail(400, 'value must be a number');
-    const { display } = INDICATORS[indicatorId];
-    if (value < display.min || value > display.max) return fail(400, `value must be between ${display.min} and ${display.max} ${INDICATORS[indicatorId].unit}`);
-    return ok({ reading: runtime.log(indicatorId, value) }, 201);
+    // The same check as the dashboard. The API has no confirmation step, so an unusual value is
+    // saved as sent and flagged in the answer; only an implausible one is refused.
+    const check = checkManualValue(INDICATORS[indicatorId], String(value));
+    if (check.kind === 'invalid' || check.kind === 'implausible') return fail(400, check.message);
+    return ok({ reading: runtime.log(indicatorId, check.value), ...(check.kind === 'unusual' ? { unusual: true } : {}) }, 201);
   }
 
   if (method === 'POST' && resource === 'simulate') {
