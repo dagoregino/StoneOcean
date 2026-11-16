@@ -16,6 +16,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Astronaut Health Twin Dashboard](docs/screenshots/03-dashboard-astronaut.jpg)
 *3. Astronaut health twin dashboard: nominal status, live vitals summary, and mission environment context with light-speed communications delay.*
 
+![3D Anatomical Body Systems](docs/screenshots/04-anatomy-3d-model.jpg)
+*4. Anatomical 3D digital twin: BodyParts3D atlas decomposed into interactive physiological systems and multi-depth anatomical layers.*
+
 
 ## What it does
 
