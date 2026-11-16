@@ -13,6 +13,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Cinematic 3D Intro - Astronaut](docs/screenshots/02-intro-astronaut.jpg)
 *2. Astronaut arrival: introducing the health twin concept for long-duration crews.*
 
+![Astronaut Health Twin Dashboard](docs/screenshots/03-dashboard-astronaut.jpg)
+*3. Astronaut health twin dashboard: nominal status, live vitals summary, and mission environment context with light-speed communications delay.*
+
 
 ## What it does
 
