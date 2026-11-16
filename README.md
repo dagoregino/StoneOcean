@@ -7,8 +7,11 @@ Built for the NASA Space Apps Challenge 2026, challenge
 
 ## Demo & Visual Walkthrough
 
-![Cinematic 3D Intro](docs/screenshots/01-intro-earth.jpg)
+![Cinematic 3D Intro - Earth](docs/screenshots/01-intro-earth.jpg)
 *1. Cinematic 3D intro sequence: procedural Earth shader and opening mission narrative.*
+
+![Cinematic 3D Intro - Astronaut](docs/screenshots/02-intro-astronaut.jpg)
+*2. Astronaut arrival: introducing the health twin concept for long-duration crews.*
 
 
 ## What it does
