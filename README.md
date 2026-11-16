@@ -19,6 +19,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![3D Anatomical Body Systems](docs/screenshots/04-anatomy-3d-model.jpg)
 *4. Anatomical 3D digital twin: BodyParts3D atlas decomposed into interactive physiological systems and multi-depth anatomical layers.*
 
+![System Selection & 3D Organ Highlighting](docs/screenshots/05-system-selection-eyes.jpg)
+*5. Targeted system inspection: selecting "Eyes & balance" isolates the sensory organs in 3D and visualizes relevant SANS indicators and balance metrics.*
+
 
 ## What it does
 
