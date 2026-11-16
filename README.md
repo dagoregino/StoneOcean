@@ -25,6 +25,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Critical Alert & Earth-Independent Medical Triage (EIMO)](docs/screenshots/06-critical-alert-triage-eimo.jpg)
 *6. Critical alert & Earth-Independent Medical Operations (EIMO): deep-space communication latency triggers autonomous onboard action protocols while affected cardiovascular systems illuminate in red in 3D.*
 
+![Detect-Treat-Verify Clinical Loop & Evidence](docs/screenshots/07-protocol-and-evidence-loop.jpg)
+*7. Closed clinical loop (Detect → Treat → Verify): individual baseline drift detection (EWMA/CUSUM), NASA evidence provenance, authority-tiered treatments, and objective verification requirements.*
+
 
 ## What it does
 
