@@ -43,6 +43,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Subjective Discomfort Logging & Clinical Intensity](docs/screenshots/12-symptom-report-form.jpg)
 *12. Clinical symptom recording: 3D spatial pin placement, 1–10 severity slider, pain classification, and contextual notes (logged as clinical observation without biasing objective rule engines).*
 
+![Actionable Decision Support - What Should I Do Now?](docs/screenshots/13-what-should-i-do-now.jpg)
+*13. Actionable decision support ("What should I do now?"): structured 4-step clinical guidance following a symptom report (immediate action, self-checks, monitoring, and escalation triggers) with clear provenance badges.*
+
 
 ## What it does
 
