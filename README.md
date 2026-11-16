@@ -28,6 +28,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Detect-Treat-Verify Clinical Loop & Evidence](docs/screenshots/07-protocol-and-evidence-loop.jpg)
 *7. Closed clinical loop (Detect → Treat → Verify): individual baseline drift detection (EWMA/CUSUM), NASA evidence provenance, authority-tiered treatments, and objective verification requirements.*
 
+![Real Space Weather & Multi-System 3D Status](docs/screenshots/08-space-weather-real-data.jpg)
+*8. Real space weather & multi-system telemetry: live GOES-18 proton flux (NOAA SWPC), NASA DONKI solar particle event tracking, and anatomical 3D status coloring (amber caution, red critical).*
+
 
 ## What it does
 
