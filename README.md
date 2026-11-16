@@ -40,6 +40,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Interactive Discomfort Reporting & Layer Toggling](docs/screenshots/11-report-discomfort-layer-toggle.jpg)
 *11. Interactive discomfort reporting & layer toggling: raycast-based 3D body picking to pinpoint localized pain or symptoms, with selective anatomical layer visibility.*
 
+![Subjective Discomfort Logging & Clinical Intensity](docs/screenshots/12-symptom-report-form.jpg)
+*12. Clinical symptom recording: 3D spatial pin placement, 1–10 severity slider, pain classification, and contextual notes (logged as clinical observation without biasing objective rule engines).*
+
 
 ## What it does
 
