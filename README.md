@@ -31,6 +31,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Real Space Weather & Multi-System 3D Status](docs/screenshots/08-space-weather-real-data.jpg)
 *8. Real space weather & multi-system telemetry: live GOES-18 proton flux (NOAA SWPC), NASA DONKI solar particle event tracking, and anatomical 3D status coloring (amber caution, red critical).*
 
+![Spatial Symptom Pinning & Guided Mission Tour](docs/screenshots/09-symptom-pinning-spatial.jpg)
+*9. Spatial symptom reporting & guided mission tour: pinning subjective discomfort directly on the 3D anatomy with real-time station-to-ground telemetry triage.*
+
 
 ## What it does
 
