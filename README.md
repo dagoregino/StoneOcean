@@ -5,6 +5,59 @@ live health indicators, and its status drives its color on an interactive 3D bod
 Built for the NASA Space Apps Challenge 2026, challenge
 *Create Health Monitoring Software for Astronauts on Space Missions*.
 
+## Demo & Visual Walkthrough
+
+![Cinematic 3D Intro - Earth](<img width="1919" height="1079" alt="Captura de pantalla 2026-11-15 233618" src="https://github.com/user-attachments/assets/db1ac6a7-ce1a-4454-8289-f6eb38333172" />
+)
+*1. Cinematic 3D intro sequence: procedural Earth shader and opening mission narrative.*
+
+![Cinematic 3D Intro - Astronaut](<img width="1918" height="1079" alt="Captura de pantalla 2026-11-15 233630" src="https://github.com/user-attachments/assets/0cf26ce3-57d6-4983-ab79-4e36dc613c43" />
+)
+*2. Astronaut arrival: introducing the health twin concept for long-duration crews.*
+
+![Astronaut Health Twin Dashboard](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/25ff8612-ebd8-40b3-aec0-ba8c5f08b5e5" />
+)
+*3. Astronaut health twin dashboard: nominal status, live vitals summary, and mission environment context with light-speed communications delay.*
+
+![3D Anatomical Body Systems](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d360f8bb-50d0-4cf5-99ec-7fa9684c1fe7" />
+)
+*4. Anatomical 3D digital twin: BodyParts3D atlas decomposed into interactive physiological systems and multi-depth anatomical layers.*
+
+![System Selection & 3D Organ Highlighting](<img width="1919" height="1053" alt="image" src="https://github.com/user-attachments/assets/1debd4ab-5303-4404-8e6f-bf256197acdd" />
+)
+*5. Targeted system inspection: selecting "Eyes & balance" isolates the sensory organs in 3D and visualizes relevant SANS indicators and balance metrics.*
+
+![Critical Alert & Earth-Independent Medical Triage (EIMO)](<img width="1919" height="1057" alt="image" src="https://github.com/user-attachments/assets/5e368892-7265-40d1-bd04-0a58c788c600" />
+)
+*6. Critical alert & Earth-Independent Medical Operations (EIMO): deep-space communication latency triggers autonomous onboard action protocols while affected cardiovascular systems illuminate in red in 3D.*
+
+![Detect-Treat-Verify Clinical Loop & Evidence](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/533a26e8-49c8-41b3-b814-32238581b48b" />
+)
+*7. Closed clinical loop (Detect → Treat → Verify): individual baseline drift detection (EWMA/CUSUM), NASA evidence provenance, authority-tiered treatments, and objective verification requirements.*
+
+![Real Space Weather & Multi-System 3D Status](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/67936b29-d7cd-4293-ba95-5b78b52e53c0" />
+)
+*8. Real space weather & multi-system telemetry: live GOES-18 proton flux (NOAA SWPC), NASA DONKI solar particle event tracking, and anatomical 3D status coloring (amber caution, red critical).*
+
+![Spatial Symptom Pinning & Guided Mission Tour](<img width="1919" height="1054" alt="image" src="https://github.com/user-attachments/assets/aed3e156-2fdb-4783-afdc-b5d93278c80c" />
+)
+*9. Spatial symptom reporting & guided mission tour: pinning subjective discomfort directly on the 3D anatomy with real-time station-to-ground telemetry triage.*
+
+![Medical Resources & Crew Capabilities](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/12cf93dc-a882-426f-9758-53189a03c550" />
+)
+*10. Resource Intelligence & crew capability matching: verifying in-flight medical inventory and certified crew availability (e.g. retinal OCT examination for SANS) before executing protocols.*
+
+![Interactive Discomfort Reporting & Layer Toggling](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/badb7840-f9fc-4b8c-8f14-0116a1fcbda2" />
+)
+*11. Interactive discomfort reporting & layer toggling: raycast-based 3D body picking to pinpoint localized pain or symptoms, with selective anatomical layer visibility.*
+
+![Subjective Discomfort Logging & Clinical Intensity](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/e8c5e33b-982b-462b-9533-19350fc4257b" />
+)
+*12. Clinical symptom recording: 3D spatial pin placement, 1–10 severity slider, pain classification, and contextual notes (logged as clinical observation without biasing objective rule engines).*
+
+![Actionable Decision Support - What Should I Do Now?](<img width="1917" height="964" alt="image" src="https://github.com/user-attachments/assets/e009efd1-0534-4c0a-ad14-3d2fdfa4a438" />
+)
+*13. Actionable decision support ("What should I do now?"): structured 4-step clinical guidance following a symptom report (immediate action, self-checks, monitoring, and escalation triggers) with clear provenance badges.*
 
 ## What it does
 
@@ -62,7 +115,6 @@ data that the app, the tests and a SQLite database all read:
 | `data/matrix/sources.json` | 29 sources: 28 re-located in NASA NTRS, Crossref or by URL, 1 not located and flagged |
 | `reference_map.csv` | every claim linked to a source that resolves, with its verification status |
 | `data/snapshots/` | saved responses of the external sources, for offline use |
-| `INVENTARIO.md` | audit of the project against the report, in Spanish (working document) |
 
 Status in `reference_map.csv`: `verificado` means the key figure was found in the abstract of
 the source; `fuente_localizada` means the source was found but the figure was not confirmed
@@ -229,7 +281,7 @@ The dashboard opens on a friendly astronaut; the anatomy appears only when the c
 
 ### Play the Mission (guided demo)
 
-`▶ Play the Mission`, in the top bar (or `?demo` in the address), plays one health episode in about 90
+`▶ Guided demo`, in the top bar (or `?demo` in the address), plays one health episode in about 90
 seconds: the astronaut, the scanner, a change detected, a symptom pinned on the body, "What should I do
 now?", a consultation from the station, the same consultation from Mars, the onboard protocol, and the
 verification.
@@ -241,6 +293,13 @@ verification.
 - `src/ui/MissionTourStage.ts` draws it: subtitles (`MissionCaption`), the Detect → Act → Verify marker, the
   station/Mars delay card, the before/action/after card, pause and skip. Skipping at any point restores a
   fresh nominal mission in the environment the viewer had.
+
+### Interface tour (spotlight)
+
+A `Tour` button in the top bar (and an invitation on first visit) runs a 30-second spotlight tour of the
+interface: each control is highlighted with a dark mask and a cyan halo, a floating card explains it, and
+the tour advances automatically after ~4.5 s per step. Esc, ←/→, Skip and Pause are supported; clicking the
+highlighted control advances to the next step. The tour is lazy-loaded and restores any state it changed.
 
 ### Loss of signal: store and forward
 
@@ -317,21 +376,7 @@ transcripts never leave the browser, and no cloud service or browser `SpeechReco
   IndexedDB for offline use. See
   [`public/models/vosk/README.md`](public/models/vosk/README.md).
 
-### The interface tour (how to use HELIOS)
-
-On a first visit a small HELIOS assistant appears in the bottom-right corner and offers a
-30-second tour. It never starts on its own and does not block the dashboard. The tour lights up
-six things in turn (the Health Twin, Astronaut / Anatomy, Body Systems, Report discomfort,
-Trends, Medical Resources), about 4.5 s each, with Back, Next, Skip, pause and Esc. Clicking the
-highlighted control works as usual and moves the tour on; what a step opens for a moment (the
-Body Systems drawer, the Trends tab) is put back afterwards.
-
-It answers "how do I use HELIOS?"; Play the Mission answers "why does it matter?". The tour only
-points at Play the Mission at the end and never starts it, and starting Play the Mission closes
-the tour. "Don't show again" is remembered in `localStorage` (`helios-tutorial-seen`); the
-**Tour** button in the top bar replays it any time. Code: `src/tutorial/`.
-
-, and why distance matters (EIMO)
+### Send to Flight Surgeon, and why distance matters (EIMO)
 
 When the triage escalates to the ground (a critical finding), or a treatment was not verified and
 the protocol says "move to the next authority level", a **Send to Flight Surgeon** button appears
@@ -379,7 +424,7 @@ trained to use it, and whether the approved protocols can be carried out with it
 | --- | --- | --- |
 | Rules | `src/domain/resources/` | Types, movement rules, validation, findings and alerts, CSV/JSON import, the readiness engine. No DOM, no storage. |
 | Storage | `src/data/resources/` | `ResourceRepository` (IndexedDB in the app, memory in tests) and `ResourceStore`, the one service that changes anything. |
-| Screens | `src/ui/resources/` | Overview, Inventory, Movements, Crew capabilities, Alerts, and the dialogs. Loaded the first time the section is opened. |
+| Screens | `src/ui/resources/` | Overview, Inventory, Who can help, Alerts, and the dialogs. Loaded the first time the section is opened. |
 
 - **Offline-first.** Records live in IndexedDB (`helios-medical-resources`): they survive reloads and need no
   connection. Every write is one transaction, so a movement and the count it produces are saved together.
@@ -453,12 +498,21 @@ Other references for the simulator and reference ranges:
   nodes and inner ears are approximations added by this project.
 - Frame rate on low-end graphics has not been measured.
 
+## Design Consideration: Mental & Behavioral Health Scope
+
+We intentionally chose not to delve deeply into automated psychological diagnostics or psychiatric interventions in this prototype. Mental health in long-duration spaceflight is an exceptionally sensitive domain; automated algorithmic classifications in extreme, isolated environments risk generating misleading false positives that could needlessly elevate crew anxiety or mislabel normal, situational fluctuations.
+
+In HELIOS, behavioral tracking is purposefully kept conservative: daily self-reported mood ratings and sleep metrics are evaluated only against the astronaut's own 14-day individual baseline (avoiding rigid or arbitrary terrestrial labels). Expanding this into a comprehensive, clinically validated behavioral health decision-support module remains an important direction for future development in collaboration with flight surgeons and behavioral specialists.
+
 ## Use of AI tools
 
 The source code of this prototype was written with the assistance of an AI coding tool
 (Claude Code, Anthropic). The project idea (the body as a data structure whose systems change
 color with live health data) is the team's own. No AI-generated images, video or audio are
 included, and no NASA branding is used.
+
+Tools: TypeScript, three.js, three-mesh-bvh, Vite, Vitest; glTF-Transform and meshoptimizer
+for the model build.
 
 Tools: TypeScript, three.js, three-mesh-bvh, Vite, Vitest; glTF-Transform and meshoptimizer
 for the model build.
