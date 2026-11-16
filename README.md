@@ -7,56 +7,43 @@ Built for the NASA Space Apps Challenge 2026, challenge
 
 ## Demo & Visual Walkthrough
 
-![Cinematic 3D Intro - Earth](<img width="1919" height="1079" alt="Captura de pantalla 2026-11-15 233618" src="https://github.com/user-attachments/assets/db1ac6a7-ce1a-4454-8289-f6eb38333172" />
-)
+![Cinematic 3D Intro - Earth](docs/screenshots/01-intro-earth.png)
 *1. Cinematic 3D intro sequence: procedural Earth shader and opening mission narrative.*
 
-![Cinematic 3D Intro - Astronaut](<img width="1918" height="1079" alt="Captura de pantalla 2026-11-15 233630" src="https://github.com/user-attachments/assets/0cf26ce3-57d6-4983-ab79-4e36dc613c43" />
-)
+![Cinematic 3D Intro - Astronaut](docs/screenshots/02-intro-astronaut.png)
 *2. Astronaut arrival: introducing the health twin concept for long-duration crews.*
 
-![Astronaut Health Twin Dashboard](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/25ff8612-ebd8-40b3-aec0-ba8c5f08b5e5" />
-)
+![Astronaut Health Twin Dashboard](docs/screenshots/03-dashboard-astronaut.png)
 *3. Astronaut health twin dashboard: nominal status, live vitals summary, and mission environment context with light-speed communications delay.*
 
-![3D Anatomical Body Systems](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d360f8bb-50d0-4cf5-99ec-7fa9684c1fe7" />
-)
+![3D Anatomical Body Systems](docs/screenshots/04-anatomy-3d-model.png)
 *4. Anatomical 3D digital twin: BodyParts3D atlas decomposed into interactive physiological systems and multi-depth anatomical layers.*
 
-![System Selection & 3D Organ Highlighting](<img width="1919" height="1053" alt="image" src="https://github.com/user-attachments/assets/1debd4ab-5303-4404-8e6f-bf256197acdd" />
-)
+![System Selection & 3D Organ Highlighting](docs/screenshots/05-system-selection-eyes.png)
 *5. Targeted system inspection: selecting "Eyes & balance" isolates the sensory organs in 3D and visualizes relevant SANS indicators and balance metrics.*
 
-![Critical Alert & Earth-Independent Medical Triage (EIMO)](<img width="1919" height="1057" alt="image" src="https://github.com/user-attachments/assets/5e368892-7265-40d1-bd04-0a58c788c600" />
-)
+![Critical Alert & Earth-Independent Medical Triage (EIMO)](docs/screenshots/06-critical-alert-triage-eimo.png)
 *6. Critical alert & Earth-Independent Medical Operations (EIMO): deep-space communication latency triggers autonomous onboard action protocols while affected cardiovascular systems illuminate in red in 3D.*
 
-![Detect-Treat-Verify Clinical Loop & Evidence](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/533a26e8-49c8-41b3-b814-32238581b48b" />
-)
+![Detect-Treat-Verify Clinical Loop & Evidence](docs/screenshots/07-protocol-and-evidence-loop.png)
 *7. Closed clinical loop (Detect → Treat → Verify): individual baseline drift detection (EWMA/CUSUM), NASA evidence provenance, authority-tiered treatments, and objective verification requirements.*
 
-![Real Space Weather & Multi-System 3D Status](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/67936b29-d7cd-4293-ba95-5b78b52e53c0" />
-)
+![Real Space Weather & Multi-System 3D Status](docs/screenshots/08-space-weather-real-data.png)
 *8. Real space weather & multi-system telemetry: live GOES-18 proton flux (NOAA SWPC), NASA DONKI solar particle event tracking, and anatomical 3D status coloring (amber caution, red critical).*
 
-![Spatial Symptom Pinning & Guided Mission Tour](<img width="1919" height="1054" alt="image" src="https://github.com/user-attachments/assets/aed3e156-2fdb-4783-afdc-b5d93278c80c" />
-)
+![Spatial Symptom Pinning & Guided Mission Tour](docs/screenshots/09-symptom-pinning-spatial.png)
 *9. Spatial symptom reporting & guided mission tour: pinning subjective discomfort directly on the 3D anatomy with real-time station-to-ground telemetry triage.*
 
-![Medical Resources & Crew Capabilities](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/12cf93dc-a882-426f-9758-53189a03c550" />
-)
+![Medical Resources & Crew Capabilities](docs/screenshots/10-medical-resources-crew-capabilities.png)
 *10. Resource Intelligence & crew capability matching: verifying in-flight medical inventory and certified crew availability (e.g. retinal OCT examination for SANS) before executing protocols.*
 
-![Interactive Discomfort Reporting & Layer Toggling](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/badb7840-f9fc-4b8c-8f14-0116a1fcbda2" />
-)
+![Interactive Discomfort Reporting & Layer Toggling](docs/screenshots/11-report-discomfort-layer-toggle.png)
 *11. Interactive discomfort reporting & layer toggling: raycast-based 3D body picking to pinpoint localized pain or symptoms, with selective anatomical layer visibility.*
 
-![Subjective Discomfort Logging & Clinical Intensity](<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/e8c5e33b-982b-462b-9533-19350fc4257b" />
-)
+![Subjective Discomfort Logging & Clinical Intensity](docs/screenshots/12-symptom-report-form.png)
 *12. Clinical symptom recording: 3D spatial pin placement, 1–10 severity slider, pain classification, and contextual notes (logged as clinical observation without biasing objective rule engines).*
 
-![Actionable Decision Support - What Should I Do Now?](<img width="1917" height="964" alt="image" src="https://github.com/user-attachments/assets/e009efd1-0534-4c0a-ad14-3d2fdfa4a438" />
-)
+![Actionable Decision Support - What Should I Do Now?](docs/screenshots/13-what-should-i-do-now.png)
 *13. Actionable decision support ("What should I do now?"): structured 4-step clinical guidance following a symptom report (immediate action, self-checks, monitoring, and escalation triggers) with clear provenance badges.*
 
 ## What it does
