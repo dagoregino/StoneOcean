@@ -1405,6 +1405,50 @@ details p {
   white-space: nowrap;
 }
 
+/* ---------- Tour button in top bar ---------- */
+.tour-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 11px 4px 9px;
+  border: 1px solid #7fa5c4;
+  border-radius: var(--radius);
+  background: #18232c;
+  color: #dceaf3;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tour-help:hover {
+  background: #223240;
+  border-color: #a9c7d8;
+  color: #ffffff;
+}
+
+.tour-help:active {
+  transform: translateY(1px);
+}
+
+.tour-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 13px;
+  height: 13px;
+  color: #a9c7d8;
+}
+
+.tour-help:hover .tour-help-icon {
+  color: #ffffff;
+}
+
 /* ---------- Side panel: scope, tabs ---------- */
 .panel-scope {
   display: flex;
@@ -5369,6 +5413,12 @@ details p {
   .crew-chip {
     order: 3;
     padding-right: 4px;
+  }
+  .tour-help {
+    order: 3;
+    min-height: 30px;
+    padding: 3px 8px;
+    font-size: 12px;
   }
   .crew-chip-name {
     display: none;

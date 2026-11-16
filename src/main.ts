@@ -106,9 +106,23 @@ function bootstrap(profile: CrewProfile): void {
 
   new TopBar($('topbar'), store);
 
-  const tourButton = h('button', { class: 'tour-help', type: 'button', title: 'Replay the interface tour', onclick: () => {
-    void import('./tutorial/TutorialController').then(({ startTutorial }) => startTutorial());
-  } }, 'Tour');
+  const tourIcon = h('span', { class: 'tour-help-icon', 'aria-hidden': 'true' });
+  tourIcon.innerHTML =
+    '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 1.2l1.7 5.1 5.1 1.7-5.1 1.7L8 14.8l-1.7-5.1L1.2 8l5.1-1.7z"/></svg>';
+
+  const tourButton = h(
+    'button',
+    {
+      class: 'tour-help',
+      type: 'button',
+      title: 'Replay the interface tour',
+      onclick: () => {
+        void import('./tutorial/TutorialController').then(({ startTutorial }) => startTutorial());
+      },
+    },
+    tourIcon,
+    'Tour',
+  );
   $('topbar').append(tourButton);
 
   // Main navigation: the monitoring console and the medical resources share the top bar.
