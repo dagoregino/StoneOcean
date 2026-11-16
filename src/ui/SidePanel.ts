@@ -175,6 +175,7 @@ export class SidePanel {
     this.view = this.tab === 'overview' ? new OverviewTab(context) : new TrendsTab(context);
     this.body.replaceChildren(this.view.element);
     this.body.scrollTop = 0;
+    this.parent.scrollTop = 0;
     this.body.setAttribute('aria-labelledby', `panel-tab-${this.tab}`);
     this.tabButtons.forEach((button, i) => {
       const selected = TABS[i].id === this.tab;

@@ -151,8 +151,8 @@ export class FlightSurgeonPanel {
       setText(
         this.offerDelay,
         latency.realtime
-          ? `Round trip from ${store.environment.shortName}: about ${formatRoundTrip(latency.roundTripSec)}. The flight surgeon can answer almost at once.`
-          : `Round trip from ${store.environment.shortName}: about ${formatRoundTrip(latency.roundTripSec)}. Start the onboard protocol first; the answer comes later.`,
+          ? `Round trip from ${store.environment.shortName}: ~${formatRoundTrip(latency.roundTripSec)} (immediate response).`
+          : `Round trip from ${store.environment.shortName}: ~${formatRoundTrip(latency.roundTripSec)} · onboard protocol first.`,
       );
     }
 
