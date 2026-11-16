@@ -5,6 +5,11 @@ live health indicators, and its status drives its color on an interactive 3D bod
 Built for the NASA Space Apps Challenge 2026, challenge
 *Create Health Monitoring Software for Astronauts on Space Missions*.
 
+## Demo & Visual Walkthrough
+
+![Cinematic 3D Intro](docs/screenshots/01-intro-earth.jpg)
+*1. Cinematic 3D intro sequence: procedural Earth shader and opening mission narrative.*
+
 
 ## What it does
 
