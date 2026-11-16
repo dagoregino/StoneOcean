@@ -6,12 +6,12 @@ dist
 # Raw source data and local tooling (not published)
 assets-src
 data/raw
-.claude/*
-!.claude/settings.json
+.claude/
 
 # Research notes kept out of the repository
 deep-research-report.md
 *.docx
+INVENTARIO.md
 
 # Derived database (rebuild with npm run db:build)
 data/*.db

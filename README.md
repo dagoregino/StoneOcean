@@ -62,7 +62,6 @@ data that the app, the tests and a SQLite database all read:
 | `data/matrix/sources.json` | 29 sources: 28 re-located in NASA NTRS, Crossref or by URL, 1 not located and flagged |
 | `reference_map.csv` | every claim linked to a source that resolves, with its verification status |
 | `data/snapshots/` | saved responses of the external sources, for offline use |
-| `INVENTARIO.md` | audit of the project against the report, in Spanish (working document) |
 
 Status in `reference_map.csv`: `verificado` means the key figure was found in the abstract of
 the source; `fuente_localizada` means the source was found but the figure was not confirmed
