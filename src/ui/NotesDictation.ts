@@ -15,19 +15,19 @@ interface ButtonView {
 }
 
 const BUTTON: Record<DictationState, ButtonView> = {
-  idle: { text: 'Dictate', hint: 'Tap to speak · describe the symptom with your voice', label: 'Dictate notes: start offline voice dictation', pressed: false, disabled: false },
-  loading: { text: 'Preparing the voice model…', hint: 'A few seconds the first time · tap to cancel', label: 'Loading the offline voice model. Press to cancel.', pressed: false, disabled: false },
-  listening: { text: 'Listening… tap to stop', hint: 'Speak naturally · Esc also stops', label: 'Stop dictation', pressed: true, disabled: false },
-  processing: { text: 'Processing…', hint: 'Turning your words into text', label: 'Finishing the transcript', pressed: true, disabled: true },
-  ready: { text: 'Transcript ready', hint: 'Review it in the notes above · tap to add more', label: 'Dictate more notes', pressed: false, disabled: false },
-  error: { text: 'Try again', hint: 'Dictation could not start · see why below', label: 'Try voice dictation again', pressed: false, disabled: false },
+  idle: { text: 'Dictate', hint: 'Tap to speak', label: 'Dictate notes: start offline voice dictation', pressed: false, disabled: false },
+  loading: { text: 'Preparing…', hint: 'Tap to cancel', label: 'Loading the offline voice model. Press to cancel.', pressed: false, disabled: false },
+  listening: { text: 'Listening… tap to stop', hint: 'Speak naturally · Esc stops', label: 'Stop dictation', pressed: true, disabled: false },
+  processing: { text: 'Processing…', hint: 'Turning words into text', label: 'Finishing the transcript', pressed: true, disabled: true },
+  ready: { text: 'Transcript ready', hint: 'Review in notes above', label: 'Dictate more notes', pressed: false, disabled: false },
+  error: { text: 'Try again', hint: 'Could not start', label: 'Try voice dictation again', pressed: false, disabled: false },
 };
 
 const STATUS: Record<DictationState, string> = {
   idle: '',
-  loading: 'Loading the offline voice model… The first time takes longer; after that it is stored on this device. The browser may ask to use the microphone.',
+  loading: 'Loading voice model…',
   listening: 'Listening. Speak, then press Stop or Esc.',
-  processing: 'Finishing the transcript…',
+  processing: 'Finishing…',
   ready: '',
   error: '',
 };
@@ -82,7 +82,6 @@ export class NotesDictation {
       this.partial,
       this.status,
       this.alert,
-      h('p', { class: 'dictation-privacy', id: 'dictation-privacy' }, 'Dictation runs offline on this device: audio and words never leave it.'),
     );
     controller.subscribe((snapshot) => this.render(snapshot));
     this.render(controller.snapshot);

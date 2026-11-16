@@ -19,7 +19,7 @@ export class KpiCard {
   private readonly spark = new Sparkline();
   private readonly range = h('span', { class: 'kpi-range' });
 
-  constructor(private readonly def: IndicatorDef, actions: AppActions, showSystem: boolean, onOpen: () => void, onProtocol: () => void) {
+  constructor(private readonly def: IndicatorDef, actions: AppActions, showSystem: boolean, onOpen: () => void, onProtocol: () => void, compact = false) {
     const help = helpToggle(
       `About ${def.name}`,
       h('p', null, h('strong', null, 'Why it matters. '), def.whyItMatters),
@@ -74,20 +74,28 @@ export class KpiCard {
 
     this.element = h(
       'article',
-      { class: 'kpi' },
+      { class: compact ? 'kpi is-compact' : 'kpi' },
       h(
         'button',
-        { class: 'kpi-main', type: 'button', title: 'Open the trend', onclick: onOpen },
+        {
+          class: 'kpi-main',
+          type: 'button',
+          title: 'Open the trend',
+          'aria-label': compact ? `${def.name}: open its 7-day trend` : 'Open the trend',
+          onclick: onOpen,
+        },
         // Read top to bottom: where, what, how much, how it has moved, where it is heading.
         showSystem ? h('span', { class: 'kpi-system' }, SYSTEMS[def.systemId].name) : null,
         h('span', { class: 'kpi-label' }, def.name),
         h('span', { class: 'kpi-figure' }, this.value, h('span', { class: 'kpi-unit' }, def.unit)),
-        h('span', { class: 'kpi-chart' }, this.spark.element, h('span', { class: 'kpi-chart-caption' }, h('span', null, 'Last 7 days'), this.range)),
-        this.note,
+        compact ? null : h('span', { class: 'kpi-chart' }, this.spark.element, h('span', { class: 'kpi-chart-caption' }, h('span', null, 'Last 7 days'), this.range)),
+        compact ? null : this.note,
       ),
-      h('div', { class: 'kpi-foot' }, this.badge, this.dueChip, h('span', { class: 'kpi-spacer' }), selfCheck ? logButton : null, help.button),
-      selfCheck ? form : null,
-      help.content,
+      compact
+        ? h('div', { class: 'kpi-foot' }, this.badge, this.dueChip)
+        : h('div', { class: 'kpi-foot' }, this.badge, this.dueChip, h('span', { class: 'kpi-spacer' }), selfCheck ? logButton : null, help.button),
+      compact ? null : selfCheck ? form : null,
+      compact ? null : help.content,
     );
   }
 

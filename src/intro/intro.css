@@ -1,18 +1,15 @@
 /* The introduction: a full-screen layer over the app. Uses the app's tokens (styles.css). */
 .intro {
-  --intro-ink: #f3f6ff;
-  --intro-ink-2: #b9c6e4;
-  --intro-line: rgba(150, 190, 255, 0.24);
+  --intro-ink: #ece8df;
+  --intro-ink-2: #b9b4a9;
+  --intro-line: #3f454b;
   position: fixed;
   inset: 0;
   z-index: 100;
   overflow: hidden;
   color: var(--intro-ink);
-  /* The night sky itself. It also stands in for the 3D scene when WebGL is unavailable. */
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(34, 78, 160, 0.28), transparent 60%),
-    radial-gradient(90% 70% at 80% 100%, rgba(22, 48, 110, 0.3), transparent 65%),
-    linear-gradient(180deg, #040a1c 0%, #020510 100%);
+  /* Flat fallback when WebGL is unavailable; the 3D scene carries the sky. */
+  background: #06070a;
 }
 
 .intro:focus {
@@ -31,14 +28,14 @@
 .intro-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(2, 5, 16, 0) 30%, rgba(2, 5, 16, 0.62) 68%, rgba(2, 5, 16, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(6, 7, 10, 0) 32%, rgba(6, 7, 10, 0.6) 68%, rgba(6, 7, 10, 0.92) 100%);
   pointer-events: none;
 }
 
 .intro-curtain {
   position: absolute;
   inset: 0;
-  background: #020510;
+  background: #06070a;
   pointer-events: none;
 }
 
@@ -64,11 +61,12 @@
 
 .intro-line {
   grid-area: 1 / 1;
-  font-weight: 300;
-  line-height: 1.3;
-  letter-spacing: 0.01em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.32;
+  letter-spacing: 0.005em;
   text-wrap: balance;
-  text-shadow: 0 2px 22px rgba(2, 5, 16, 0.95), 0 0 2px rgba(2, 5, 16, 0.6);
+  text-shadow: 0 1px 12px rgba(6, 7, 10, 0.9);
 }
 
 .intro-word {
@@ -79,19 +77,22 @@
 
 .intro-title {
   /* The trailing space of letter-spacing would push the word off center. */
-  margin-right: -0.42em;
-  font-size: clamp(40px, 6vw + 12px, 88px);
-  font-weight: 200;
+  margin-right: -0.26em;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 6vw + 12px, 84px);
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.42em;
-  text-shadow: 0 0 42px rgba(110, 170, 255, 0.45);
+  letter-spacing: 0.26em;
+  text-shadow: none;
 }
 
 .intro-subtitle {
-  margin-top: 12px;
+  margin-top: 14px;
   color: var(--intro-ink-2);
-  font-size: clamp(14px, 0.6vw + 11px, 18px);
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.35vw + 8px, 12px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .intro-actions {
@@ -104,36 +105,37 @@
 
 .intro-button {
   min-height: 44px;
-  padding: 0 26px;
+  padding: 0 22px;
   border: 1px solid transparent;
-  border-radius: 999px;
-  font-size: 15px;
-  font-weight: 550;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
   letter-spacing: 0.02em;
   cursor: pointer;
   transition:
     background-color 0.2s,
     border-color 0.2s,
-    box-shadow 0.2s,
     color 0.2s;
 }
 
 .intro-button:focus-visible {
-  outline: 2px solid #cfe0ff;
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
 .intro-button-primary {
   min-width: 220px;
-  background: linear-gradient(180deg, #4a97f0, #2f76d4);
-  border-color: rgba(190, 220, 255, 0.5);
-  color: #fff;
-  box-shadow: 0 6px 28px rgba(57, 135, 229, 0.35);
+  border-color: #e9e3d5;
+  background: #e9e3d5;
+  color: #0b0c0d;
+  font-weight: 600;
+  box-shadow: none;
 }
 
 .intro-button-primary:hover {
-  background: linear-gradient(180deg, #5aa4f6, #3982e0);
-  box-shadow: 0 6px 34px rgba(57, 135, 229, 0.55);
+  border-color: #f7f1e3;
+  background: #f7f1e3;
+  box-shadow: none;
 }
 
 .intro-button-quiet {
@@ -170,15 +172,8 @@
   width: min(100%, 520px);
   padding: clamp(24px, 4vw, 40px);
   border: 1px solid var(--intro-line);
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(20, 34, 68, 0.62), rgba(8, 14, 32, 0.68));
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  backdrop-filter: blur(18px) saturate(1.2);
-  box-shadow:
-    inset 0 1px 0 rgba(200, 225, 255, 0.14),
-    0 0 0 1px rgba(2, 5, 16, 0.4),
-    0 0 60px rgba(57, 135, 229, 0.16),
-    0 30px 80px rgba(0, 0, 0, 0.45);
+  border-radius: var(--radius-lg);
+  background: #101317;
 }
 
 .intro-step {
@@ -188,24 +183,26 @@
 
 .intro-eyebrow {
   margin-bottom: 8px;
-  color: #8fb8f5;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .intro-card-title {
-  font-size: clamp(24px, 2vw + 14px, 32px);
-  font-weight: 350;
-  line-height: 1.15;
-  letter-spacing: 0.005em;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2vw + 14px, 34px);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: 0;
 }
 
 .intro-card-lead {
   margin-top: 8px;
   color: var(--intro-ink-2);
-  font-size: 16px;
+  font-size: 15.5px;
 }
 
 .intro-label {
@@ -218,34 +215,35 @@
   width: 100%;
   min-height: 50px;
   margin-top: 10px;
-  padding: 0 16px;
+  padding: 0 14px;
   border: 1px solid var(--intro-line);
-  border-radius: 12px;
-  background: rgba(2, 6, 18, 0.55);
-  font-size: 17px;
+  border-radius: var(--radius);
+  background: #0a0c0f;
+  color: var(--intro-ink);
+  font-size: 16px;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
 }
 
 .intro-input::placeholder {
-  color: #7d8bad;
+  color: #7d7a73;
 }
 
 .intro-input:focus {
   outline: none;
-  border-color: #6faaf2;
-  box-shadow: 0 0 0 3px rgba(57, 135, 229, 0.3);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .intro-input[aria-invalid='true'] {
-  border-color: #f08a8a;
+  border-color: var(--critical);
 }
 
 .intro-error {
   min-height: 20px;
   margin-top: 6px;
-  color: #ffb0b0;
+  color: color-mix(in srgb, var(--critical) 72%, #fff);
   font-size: 13px;
 }
 
@@ -282,16 +280,15 @@
   gap: 8px;
   padding: 14px 8px 12px;
   border: 1px solid var(--intro-line);
-  border-radius: 14px;
-  background: rgba(2, 6, 18, 0.4);
+  border-radius: var(--radius);
+  background: #0b0d10;
   color: var(--intro-ink-2);
   text-align: center;
   cursor: pointer;
   transition:
     border-color 0.2s,
     background-color 0.2s,
-    color 0.2s,
-    box-shadow 0.2s;
+    color 0.2s;
 }
 
 /* Five options: three on the first row, two centered on the second. */
@@ -300,34 +297,34 @@
 }
 
 .intro-habitat:hover {
-  border-color: rgba(170, 205, 255, 0.5);
+  border-color: var(--intro-ink-2);
   color: var(--intro-ink);
 }
 
 .intro-habitat:has(input:checked) {
-  border-color: #7db4f7;
-  background: rgba(57, 135, 229, 0.2);
-  color: #fff;
-  box-shadow: 0 0 24px rgba(57, 135, 229, 0.25);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, #0b0d10);
+  color: var(--text);
+  box-shadow: none;
 }
 
 .intro-habitat:has(input:focus-visible) {
-  outline: 2px solid #cfe0ff;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 .intro-habitat-icon {
   display: grid;
-  color: #9cc4ff;
+  color: var(--accent);
 }
 
 .intro-habitat:has(input:checked) .intro-habitat-icon {
-  color: #fff;
+  color: var(--accent);
 }
 
 .intro-habitat-label {
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   line-height: 1.25;
 }
 
@@ -337,23 +334,22 @@
   padding-top: 18vh;
   gap: 12px;
   text-align: center;
-  background: radial-gradient(60% 45% at 50% 50%, rgba(2, 5, 16, 0.55), transparent 75%);
 }
 
 .intro-greeting-title {
+  font-family: var(--font-display);
   font-size: clamp(34px, 4vw + 16px, 68px);
-  font-weight: 250;
+  font-weight: 400;
   line-height: 1.1;
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
-  text-shadow: 0 2px 30px rgba(2, 5, 16, 0.9);
 }
 
 .intro-greeting-text {
   color: var(--intro-ink-2);
-  font-size: clamp(17px, 1vw + 12px, 24px);
-  font-weight: 300;
+  font-size: clamp(15px, 0.6vw + 12px, 19px);
+  font-weight: 400;
   text-wrap: balance;
-  text-shadow: 0 2px 22px rgba(2, 5, 16, 0.95);
 }
 
 @media (max-width: 460px) {

@@ -106,6 +106,11 @@ function bootstrap(profile: CrewProfile): void {
 
   new TopBar($('topbar'), store);
 
+  const tourButton = h('button', { class: 'tour-help', type: 'button', title: 'Replay the interface tour', onclick: () => {
+    void import('./tutorial/TutorialController').then(({ startTutorial }) => startTutorial());
+  } }, 'Tour');
+  $('topbar').append(tourButton);
+
   // Main navigation: the monitoring console and the medical resources share the top bar.
   type View = 'monitoring' | 'resources';
   let resourcesView: Promise<unknown> | undefined;
@@ -153,7 +158,7 @@ function bootstrap(profile: CrewProfile): void {
       h('span', { class: 'crew-chip-name' }, profile.name),
     ),
   );
-  new SystemList($('systems'), store, $('hud'));
+  const systemList = new SystemList($('systems'), store, $('hud'));
   const sidePanel = new SidePanel($('panel'), store, actions, resources, () => showView('resources'));
   onMonitoringShown = () => sidePanel.refresh();
 
@@ -209,7 +214,7 @@ function bootstrap(profile: CrewProfile): void {
   };
   $('topbar')
     .querySelector('.main-nav')!
-    .after(h('button', { class: 'play-mission', type: 'button', onclick: playMission }, h('span', { class: 'play-mission-icon', 'aria-hidden': 'true' }, '▶'), 'Play the Mission'));
+    .after(h('button', { class: 'play-mission', type: 'button', onclick: playMission }, h('span', { class: 'play-mission-icon', 'aria-hidden': 'true' }, '▶'), 'Guided demo'));
   if (new URLSearchParams(location.search).has('demo')) playMission();
   const simulatorBar = new SimulatorBar($('simulator'), actions, simulatorState);
   store.events.on('link', (link) => simulatorBar.setLinkDown(!isLinkUp(link)));
@@ -226,10 +231,22 @@ function bootstrap(profile: CrewProfile): void {
   new EarthLink($('stage'), store);
 
   const statuses: HealthStatus[] = ['nominal', 'caution', 'critical', 'unknown'];
+  const legendButtons: HTMLButtonElement[] = [];
   $('legend').append(
-    ...statuses.map((status) =>
-      h('span', { class: 'legend-item', dataset: { status } }, h('span', { class: 'status-glyph', 'aria-hidden': 'true' }, STATUS_GLYPH[status]), STATUS_LABEL[status]),
-    ),
+    ...statuses.map((status) => {
+      const btn = h('button', { class: 'legend-item', dataset: { status }, type: 'button', onclick: () => {
+        const isActive = btn.classList.contains('is-active');
+        legendButtons.forEach((b) => b.classList.remove('is-active'));
+        if (!isActive) {
+          btn.classList.add('is-active');
+          systemList.setStatusFilter(status);
+        } else {
+          systemList.setStatusFilter(null);
+        }
+      } }, h('span', { class: 'status-glyph', 'aria-hidden': 'true' }, STATUS_GLYPH[status]), STATUS_LABEL[status]);
+      legendButtons.push(btn);
+      return btn;
+    }),
   );
 
   try {
@@ -245,6 +262,17 @@ function bootstrap(profile: CrewProfile): void {
   }
 
   clock.start();
+
+  // Offer the interface tour once, on first visit.
+  void import('./tutorial/TutorialPrompt').then(({ shouldOfferTutorial, TutorialPrompt }) => {
+    if (!shouldOfferTutorial()) return;
+    setTimeout(() => {
+      const prompt = new TutorialPrompt();
+      prompt.show(() => {
+        void import('./tutorial/TutorialController').then(({ startTutorial }) => startTutorial());
+      });
+    }, 1500);
+  });
 }
 
 const $ = (id: string): HTMLElement => document.getElementById(id)!;

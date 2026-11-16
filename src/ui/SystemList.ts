@@ -1,6 +1,7 @@
 import type { HealthStore } from '../data/HealthStore';
 import { STATUS_GLYPH, STATUS_LABEL } from '../domain/status';
-import { SYSTEM_IDS, type SystemEvaluation } from '../domain/types';
+import { SYSTEM_IDS } from '../domain/types';
+import type { HealthStatus, SystemEvaluation } from '../domain/types';
 import { h, setText, syncList } from './dom';
 import { formatValue } from './format';
 
@@ -36,6 +37,9 @@ export class SystemList {
    * Body Systems starts closed by default.
    */
   private open = false;
+
+  /** When set, only systems with this status are shown. */
+  private statusFilter: HealthStatus | null = null;
 
   /**
    * @param parent
@@ -207,13 +211,20 @@ export class SystemList {
     }
   }
 
+  /** Filter the list to systems with the given status; pass null to show all. */
+  setStatusFilter(status: HealthStatus | null): void {
+    this.statusFilter = this.statusFilter === status ? null : status;
+    if (!this.open && this.statusFilter !== null) this.setOpen(true);
+    this.render();
+  }
+
   private render(): void {
     const { store } = this;
 
     const systems = SYSTEM_IDS.map(
       (id) =>
         store.evaluation.systems[id],
-    );
+    ).filter((s) => this.statusFilter === null || s.status === this.statusFilter);
 
     /**
      * Even while the drawer is closed,

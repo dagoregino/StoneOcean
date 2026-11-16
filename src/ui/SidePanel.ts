@@ -62,7 +62,7 @@ export class SidePanel {
   ) {
     this.triage.append(
       this.triageIcon,
-      h('div', null, h('span', { class: 'eyebrow' }, 'What should I do?'), this.triageHeadline, this.triageDetail, this.triageLink),
+      h('div', null, h('span', { class: 'eyebrow' }, 'Status now'), this.triageHeadline, this.triageDetail, this.triageLink),
     );
     this.back = h('button', { class: 'link-button', type: 'button', onclick: () => store.select(null) }, '← All systems');
     this.tabButtons = TABS.map((tab) =>

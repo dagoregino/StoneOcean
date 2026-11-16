@@ -65,7 +65,9 @@ export class SimulatorBar {
       'Simulate loss of signal',
     );
 
-    parent.append(
+    const details = h('details', { class: 'sim-controls', open: false });
+    details.append(
+      h('summary', null, 'Demo controls'),
       h(
         'div',
         { class: 'sim-row' },
@@ -91,6 +93,7 @@ export class SimulatorBar {
       ),
       this.description,
     );
+    parent.append(details);
     this.render();
   }
 

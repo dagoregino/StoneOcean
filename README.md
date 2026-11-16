@@ -229,7 +229,7 @@ The dashboard opens on a friendly astronaut; the anatomy appears only when the c
 
 ### Play the Mission (guided demo)
 
-`▶ Play the Mission`, in the top bar (or `?demo` in the address), plays one health episode in about 90
+`▶ Guided demo`, in the top bar (or `?demo` in the address), plays one health episode in about 90
 seconds: the astronaut, the scanner, a change detected, a symptom pinned on the body, "What should I do
 now?", a consultation from the station, the same consultation from Mars, the onboard protocol, and the
 verification.
@@ -241,6 +241,13 @@ verification.
 - `src/ui/MissionTourStage.ts` draws it: subtitles (`MissionCaption`), the Detect → Act → Verify marker, the
   station/Mars delay card, the before/action/after card, pause and skip. Skipping at any point restores a
   fresh nominal mission in the environment the viewer had.
+
+### Interface tour (spotlight)
+
+A `Tour` button in the top bar (and an invitation on first visit) runs a 30-second spotlight tour of the
+interface: each control is highlighted with a dark mask and a cyan halo, a floating card explains it, and
+the tour advances automatically after ~4.5 s per step. Esc, ←/→, Skip and Pause are supported; clicking the
+highlighted control advances to the next step. The tour is lazy-loaded and restores any state it changed.
 
 ### Loss of signal: store and forward
 
@@ -365,7 +372,7 @@ trained to use it, and whether the approved protocols can be carried out with it
 | --- | --- | --- |
 | Rules | `src/domain/resources/` | Types, movement rules, validation, findings and alerts, CSV/JSON import, the readiness engine. No DOM, no storage. |
 | Storage | `src/data/resources/` | `ResourceRepository` (IndexedDB in the app, memory in tests) and `ResourceStore`, the one service that changes anything. |
-| Screens | `src/ui/resources/` | Overview, Inventory, Movements, Crew capabilities, Alerts, and the dialogs. Loaded the first time the section is opened. |
+| Screens | `src/ui/resources/` | Overview, Inventory, Who can help, Alerts, and the dialogs. Loaded the first time the section is opened. |
 
 - **Offline-first.** Records live in IndexedDB (`helios-medical-resources`): they survive reloads and need no
   connection. Every write is one transaction, so a movement and the count it produces are saved together.

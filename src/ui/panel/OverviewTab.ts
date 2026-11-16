@@ -8,7 +8,7 @@ import { PROVENANCE_LABEL } from '../../domain/evidence/types';
 import { offerSteps } from '../../domain/medicalPlan';
 import { severity, STATUS_GLYPH } from '../../domain/status';
 import { SYMPTOM_TYPE_LABEL, type SymptomReport } from '../../domain/symptoms';
-import type { Evaluation, IndicatorEvaluation, SystemEvaluation } from '../../domain/types';
+import type { Evaluation, IndicatorEvaluation, IndicatorId, SystemEvaluation } from '../../domain/types';
 import { buildEpisodes, type HealthEpisode } from '../../domain/episode';
 import { h, setText, syncList } from '../dom';
 import { openEpisodeRecord } from '../EpisodeDialog';
@@ -25,15 +25,22 @@ const OUTCOME_VIEW = {
 } as const;
 
 /**
- * Tab 1: how the crew member is doing, at a glance. Active alerts first, then one compact
- * card per indicator, then what was reported, what is due and what was done. Background
- * about the mission is folded away at the bottom.
+ * The six measures the challenge names for crew self-assessment. They open the panel;
+ * everything else is one disclosure below, and a trend is one click away from either.
+ */
+const PRIMARY_IDS: IndicatorId[] = ['heartRate', 'systolicBP', 'glucose', 'bodyTemp', 'sleepHours', 'mood'];
+
+/**
+ * Tab 1: how the crew member is doing, at a glance. Active alerts first, then the six named
+ * vitals, every other indicator folded below them, then what was reported, what is due and
+ * what was done. Background about the mission is folded away at the bottom.
  */
 export class OverviewTab implements PanelTab {
   readonly element = h('div', { class: 'tab-view' });
   private readonly attention = h('div', { class: 'row-list' });
   private readonly attentionSection = h('section', { hidden: true }, h('h3', null, 'Needs attention'), this.attention);
-  private readonly kpis = h('div', { class: 'kpi-grid' });
+  private readonly kpis = h('div', { class: 'kpi-grid is-compact' });
+  private readonly more = h('div', { class: 'kpi-grid' });
   private readonly cards = new Map<string, KpiCard>();
   private readonly symptoms = h('div', { class: 'row-list' });
   private readonly symptomsEmpty = h('p', { class: 'empty' }, 'Nothing reported. Use “Report discomfort” above the 3D body to mark where something hurts or feels off.');
@@ -54,10 +61,27 @@ export class OverviewTab implements PanelTab {
     const evaluation = store.evaluation;
     const indicators = system ? evaluation.systems[system].indicators : Object.values(evaluation.systems).flatMap((s) => s.indicators);
     for (const indicator of indicators) {
-      const card = new KpiCard(indicator.def, actions, !system, () => context.openTrend(indicator.def.id), () => context.openProtocol(indicator.def.id));
+      const compact = !system && PRIMARY_IDS.includes(indicator.def.id);
+      const card = new KpiCard(indicator.def, actions, !system, () => context.openTrend(indicator.def.id), () => context.openProtocol(indicator.def.id), compact);
       this.cards.set(indicator.def.id, card);
-      this.kpis.append(card.element);
+      (system || compact ? this.kpis : this.more).append(card.element);
     }
+    if (system) this.kpis.classList.remove('is-compact');
+
+    // Three levels of detail: the six named vitals, every other indicator folded below them,
+    // and the trend behind one click on any card.
+    const vitals = system
+      ? h('section', null, h('h3', null, 'Indicators'), this.kpis)
+      : h(
+          'section',
+          null,
+          h('h3', null, 'Vitals now'),
+          h('p', { class: 'section-hint' }, 'The six measures the crew checks each day. Open one for its 7-day trend.'),
+          this.kpis,
+          this.more.children.length
+            ? h('details', { class: 'fold' }, h('summary', null, `All monitored indicators (${this.more.children.length})`), this.more)
+            : null,
+        );
 
     this.drugsToggle = h('input', { type: 'checkbox', id: 'drugs-preauthorized', onchange: () => actions.setDrugsPreauthorized(this.drugsToggle.checked) });
 
@@ -65,7 +89,7 @@ export class OverviewTab implements PanelTab {
     this.element.append(
       this.attentionSection,
       ...(system === 'radiation' && store.spaceWeather ? [new SpaceWeatherCard(store.spaceWeather).element] : []),
-      h('section', null, h('h3', null, system ? 'Indicators' : 'Vital summary'), this.kpis),
+      vitals,
       h('section', null, h('h3', null, 'Reported discomfort'), this.symptoms, this.symptomsEmpty),
       this.dueSection,
       this.treatmentsSection,

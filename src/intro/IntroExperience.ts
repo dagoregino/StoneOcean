@@ -18,9 +18,9 @@ export interface IntroOptions {
 }
 
 const LINES = [
-  'When your body leaves Earth...',
-  '...space begins to change it.',
-  'Understand the changes. Monitor your health. Take care of yourself.',
+  'In space, the body keeps a log.',
+  'Bone density. Muscle. Sleep. The entries are quiet.',
+  'HELIOS reads that log and shows you what is drifting.',
 ];
 const MAX_NAME_LENGTH = 40;
 
@@ -74,7 +74,7 @@ class IntroExperience {
       'div',
       { class: 'intro-brand' },
       h('h1', { class: 'intro-title' }, 'HELIOS'),
-      h('p', { class: 'intro-subtitle' }, 'Your health companion on every mission.'),
+      h('p', { class: 'intro-subtitle' }, 'Health twin for long-duration crews'),
     );
     this.startButton = h('button', { class: 'intro-button intro-button-primary', type: 'button', onclick: () => this.leaveFilm() }, 'Start my mission');
     this.skipButton = h('button', { class: 'intro-button intro-button-quiet', type: 'button', onclick: () => this.leaveFilm() }, 'Skip introduction');
@@ -120,7 +120,7 @@ class IntroExperience {
 
   // ---------- Chapter 1: the film ----------
 
-  /** About nine seconds: leave the Earth, meet the astronaut, read the three lines, land on the name. */
+  /** About five and a half seconds: leave the Earth, meet the astronaut, read the three lines, land on the name. */
   private playFilm(): void {
     const [first, second, third] = this.lines.map((line) => Array.from(line.children));
     const film = gsap.timeline({ defaults: { ease: 'power2.out' } });
@@ -130,41 +130,41 @@ class IntroExperience {
       film.fromTo(
         words,
         { autoAlpha: 0, y: 14, filter: 'blur(6px)' },
-        { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.9, stagger: 0.07 },
+        { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 0.7, stagger: 0.06 },
         at,
       );
     };
     const dismiss = (line: HTMLElement, at: number): void => {
-      film.to(line, { autoAlpha: 0, y: -10, duration: 0.7, ease: 'power1.in' }, at);
+      film.to(line, { autoAlpha: 0, y: -10, duration: 0.5, ease: 'power1.in' }, at);
     };
 
-    film.to(this.curtain, { autoAlpha: 0, duration: 1.8, ease: 'power1.inOut' }, 0);
+    film.to(this.curtain, { autoAlpha: 0, duration: 1.2, ease: 'power1.inOut' }, 0);
     // Opacity only: the button must stay focusable from the first frame, so the film can always be skipped.
-    film.from(this.skipButton, { opacity: 0, duration: 0.8 }, 0.4);
+    film.from(this.skipButton, { opacity: 0, duration: 0.5 }, 0.3);
 
     if (this.scene) {
       const s = this.scene.state;
       const { distance, azimuth, elevation, earthY, ...astronaut } = SCENE.orbit;
-      // One long, unbroken pull-back carries the whole film.
-      film.to(s, { distance, azimuth, elevation, duration: 9, ease: 'sine.inOut' }, 0);
-      film.to(s, { ...astronaut, duration: 5.4, ease: 'power2.out' }, 3.1);
-      film.to(s, { earthY, duration: 2.4, ease: 'sine.inOut' }, 4.3);
+      // One pull-back carries the whole film.
+      film.to(s, { distance, azimuth, elevation, duration: 4.5, ease: 'sine.inOut' }, 0);
+      film.to(s, { ...astronaut, duration: 3.4, ease: 'power2.out' }, 1.6);
+      film.to(s, { earthY, duration: 2.0, ease: 'sine.inOut' }, 2.6);
     }
 
     // The first two lines sit low, like subtitles; the block rises once the name needs the room below.
     const stage = this.lines[0].parentElement!;
     film.set(stage, { y: () => this.brand.offsetHeight + this.startButton.offsetHeight * 0.6 }, 0);
-    film.set(stage, { y: 0 }, 6.25);
-    reveal(first, 0.7);
-    dismiss(this.lines[0], 3);
-    reveal(second, 3.5);
-    dismiss(this.lines[1], 5.8);
-    reveal(third, 6.3);
+    film.set(stage, { y: 0 }, 3.9);
+    reveal(first, 0.5);
+    dismiss(this.lines[0], 2.1);
+    reveal(second, 2.4);
+    dismiss(this.lines[1], 3.6);
+    reveal(third, 4.0);
     const [title, subtitle] = Array.from(this.brand.children);
     // The name settles into place: wide letters drawing together.
-    film.fromTo(title, { autoAlpha: 0, letterSpacing: '0.75em' }, { autoAlpha: 1, letterSpacing: '0.42em', duration: 1.6 }, 7.2);
-    film.fromTo(subtitle, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.9 }, 7.9);
-    film.fromTo(this.startButton, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.8 }, 8.4);
+    film.fromTo(title, { autoAlpha: 0, letterSpacing: '0.75em' }, { autoAlpha: 1, letterSpacing: '0.26em', duration: 1.0 }, 4.4);
+    film.fromTo(subtitle, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 4.9);
+    film.fromTo(this.startButton, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 5.1);
   }
 
   /** Reduced motion: the whole message at once, on a still frame of the final shot. */
@@ -230,7 +230,7 @@ class IntroExperience {
         },
       },
       h('h2', { class: 'intro-card-title' }, 'Welcome aboard.'),
-      h('p', { class: 'intro-card-lead' }, 'Before we begin, we would like to know you.'),
+      h('p', { class: 'intro-card-lead' }, 'Two questions, then the console is yours.'),
       h('label', { class: 'intro-label', for: 'intro-name' }, 'What is your name?'),
       input,
       error,
@@ -293,8 +293,8 @@ class IntroExperience {
     saveProfile(profile);
     this.enter(profile);
 
-    const hello = h('h2', { class: 'intro-greeting-title' }, `Hello, ${profile.name}!`);
-    const next = h('p', { class: 'intro-greeting-text' }, 'Let’s see how your body is doing today.');
+    const hello = h('h2', { class: 'intro-greeting-title' }, `Welcome aboard, ${profile.name}.`);
+    const next = h('p', { class: 'intro-greeting-text' }, 'Your console is live. The mission clock is running.');
     this.greeting.replaceChildren(hello, next);
     this.fade(this.welcome, false);
     this.moveScene(SCENE.greeting, 3);

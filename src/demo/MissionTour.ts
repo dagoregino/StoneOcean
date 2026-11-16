@@ -182,7 +182,7 @@ export class MissionTour {
 
     this.enter('astronaut');
     stage.caption('HELIOS continuously compares the crew member against their individual baseline.', { title: 'Station · low Earth orbit' });
-    await this.wait(6000);
+    await this.wait(5000);
 
     this.enter('scan');
     stage.caption('The crew member’s body becomes the interface.');
@@ -202,7 +202,7 @@ export class MissionTour {
     const driver = flagged.driver;
     stage.caption(`${system.def.name}: ${driver.def.name.toLowerCase()} has moved out of range.`, { title: 'Change detected', tone: 'alert' });
     store.select(system.def.id);
-    await this.wait(6500);
+    await this.wait(5000);
 
     this.enter('symptom');
     stage.caption('The astronaut can add subjective symptoms directly to the health twin.');
@@ -214,7 +214,7 @@ export class MissionTour {
     stage.caption('HELIOS answers the question that matters first.', { title: 'What should I do now?' });
     const report = store.symptoms[store.symptoms.length - 1];
     if (report) this.closeGuidance = stage.showGuidance(report);
-    await this.wait(9000);
+    await this.wait(7500);
     this.closeGuidance?.();
     this.closeGuidance = null;
 
@@ -223,7 +223,7 @@ export class MissionTour {
     store.select(null);
     stage.caption('Near Earth, ground support is available almost immediately.', { title: `Send to Flight Surgeon · round trip ${this.roundTrip(NEAR)}` });
     actions.sendToFlightSurgeon();
-    await this.wait(8000);
+    await this.wait(6500);
 
     this.enter('mars');
     stage.transition(ENVIRONMENTS[NEAR].shortName, ENVIRONMENTS[FAR].shortName);
@@ -235,7 +235,7 @@ export class MissionTour {
     stage.card({ kind: 'delay', near: { name: ENVIRONMENTS[NEAR].shortName, roundTrip: this.roundTrip(NEAR) }, far: { name: ENVIRONMENTS[FAR].shortName, roundTrip: this.roundTrip(FAR) } });
     stage.caption('Waiting for Earth is no longer the first option.', { title: `Round-trip delay ≈ ${this.roundTrip(FAR)}`, tone: 'alert' });
     actions.sendToFlightSurgeon();
-    await this.wait(8000);
+    await this.wait(6500);
 
     this.enter('action');
     stage.card({ kind: 'loop', active: 'act' });
@@ -244,7 +244,7 @@ export class MissionTour {
     const step = ruleById(INDICATOR_RULES[driver.def.id].ruleId)?.treat.find((s) => !s.requiresPreauthorization);
     if (step) actions.startIntervention(driver.def.id, step.text, step.authorityLevel);
     store.select(system.def.id);
-    await this.wait(7000);
+    await this.wait(5500);
 
     this.enter('verify');
     stage.card({ kind: 'loop', active: 'verify' });
@@ -258,7 +258,7 @@ export class MissionTour {
       title: verified ? 'Verified' : 'Not verified',
       tone: verified ? 'ok' : 'alert',
     });
-    await this.wait(8000);
+    await this.wait(6500);
   }
 
   // ---------- Helpers ----------

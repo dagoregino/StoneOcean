@@ -7,7 +7,7 @@
   margin-right: auto;
   padding: 3px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 6px;
   background: var(--bg);
 }
 
@@ -17,11 +17,11 @@
   gap: 7px;
   padding: 6px 13px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 3px;
   background: none;
   color: var(--text-2);
   font-size: 13.5px;
-  font-weight: 550;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -37,11 +37,12 @@
 .nav-count,
 .res-count {
   min-width: 19px;
-  padding: 1px 6px;
-  border-radius: 999px;
+  padding: 1px 5px;
+  border-radius: 3px;
   background: var(--warning);
   color: #1a1300;
-  font-size: 11.5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.45;
   text-align: center;
@@ -80,8 +81,10 @@
 }
 
 .res-head h2 {
-  font-size: 22px;
-  font-weight: 650;
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .res-head-sub {
@@ -147,12 +150,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--tone) 70%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--tone) 16%, transparent);
-  font-size: 12px;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -189,7 +195,7 @@
 .res-card-head h3,
 .res-subhead {
   font-size: 15.5px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .res-card-head p {
@@ -219,7 +225,20 @@
 }
 
 .res-stat[data-level='ok'] {
-  --tone: var(--border-strong);
+  --tone: var(--good);
+}
+.res-stat[data-level='attention'] {
+  --tone: var(--warning);
+}
+.res-stat[data-level='critical'] {
+  --tone: var(--critical);
+}
+.res-stat[data-level='inactive'] {
+  --tone: var(--unknown);
+}
+
+.res-stat-label .res-icon {
+  color: var(--tone);
 }
 
 .res-stat:hover {
@@ -234,13 +253,15 @@
   gap: 7px;
   color: var(--text-2);
   font-size: 12.5px;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .res-stat-value {
-  font-size: 30px;
-  font-weight: 650;
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 600;
   line-height: 1.15;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -289,7 +310,7 @@
 
 .res-bar-label {
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .res-bar {
@@ -310,6 +331,59 @@
   font-size: 12px;
 }
 
+/* ---------- Readiness ring: one dependency-free chart ---------- */
+.res-readiness {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  margin-bottom: 8px;
+}
+
+.res-readiness-ring {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+
+.res-readiness-ring circle {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.res-readiness-ring circle.prog {
+  stroke: var(--tone, var(--good));
+  stroke-dasharray: 440;
+  stroke-dashoffset: 440;
+  transition: stroke-dashoffset 0.6s var(--ease);
+}
+
+.res-readiness-value {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+.res-readiness-value span {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.res-readiness-label {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* shortcut: conic-gradient not used for projector legibility; ring uses stroke-dasharray. Ceiling: no animation timing control beyond CSS transition. Upgrade path: replace with canvas if interactivity is needed. */
+
 /* ---------- Toolbar, chips, inputs ---------- */
 .res-toolbar {
   display: flex;
@@ -326,7 +400,7 @@
   min-height: 36px;
   padding: 6px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--bg);
   font: inherit;
   color: inherit;
@@ -368,11 +442,11 @@ textarea.res-input {
   min-height: 36px;
   padding: 5px 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--text-2);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -417,9 +491,10 @@ textarea.res-input {
 
 .res-table th {
   color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -478,12 +553,15 @@ textarea.res-input {
 .res-active-tag,
 .res-sim-tag {
   margin-left: 8px;
-  padding: 1px 7px;
+  padding: 1px 6px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: 2px;
   color: var(--text-2);
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -493,7 +571,7 @@ textarea.res-input {
 }
 
 .res-move {
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .res-empty {
@@ -518,7 +596,7 @@ textarea.res-input {
   padding: 11px 12px;
   border: 1px solid var(--border);
   border-left: 3px solid var(--tone);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--surface-2);
 }
 
@@ -566,7 +644,7 @@ textarea.res-input {
 
 .res-crew h4 {
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .res-crew header p {
@@ -625,7 +703,7 @@ textarea.res-input {
   max-height: calc(100dvh - 48px);
   padding: 0;
   border: 1px solid var(--border-strong);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--text);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
@@ -655,7 +733,7 @@ textarea.res-input {
 
 .res-dialog-head h2 {
   font-size: 17px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .res-dialog-body {
@@ -687,9 +765,10 @@ textarea.res-input {
   margin-bottom: 8px;
   padding: 0;
   color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 650;
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -712,7 +791,7 @@ textarea.res-input {
 
 .res-field label {
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .res-optional {
@@ -727,7 +806,7 @@ textarea.res-input {
 
 .res-field-error,
 .res-form-summary {
-  color: #ffb0b0;
+  color: color-mix(in srgb, var(--critical) 72%, #fff);
   font-size: 12.5px;
 }
 
@@ -753,7 +832,7 @@ textarea.res-input {
 }
 
 .res-danger {
-  color: #ffb0b0;
+  color: color-mix(in srgb, var(--critical) 72%, #fff);
 }
 
 .res-stock-line {
@@ -821,8 +900,10 @@ textarea.res-input {
 
 .res-detail-count strong {
   color: var(--text);
-  font-size: 26px;
-  font-weight: 650;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .res-findings li {
@@ -844,7 +925,7 @@ textarea.res-input {
 .res-qr {
   width: 116px;
   padding: 6px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fff;
 }
 
@@ -867,9 +948,10 @@ textarea.res-input {
 
 .res-fact dt {
   color: var(--muted);
-  font-size: 11.5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -881,7 +963,7 @@ textarea.res-input {
 .res-scan-video {
   width: 100%;
   max-height: 260px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #000;
 }
 
@@ -908,9 +990,8 @@ textarea.res-input {
   padding: 10px 16px;
   border: 1px solid var(--border-strong);
   border-left: 3px solid var(--good);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--surface-3);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   font-size: 13.5px;
 }
 
@@ -953,12 +1034,15 @@ textarea.res-input {
   display: block;
   width: fit-content;
   margin-top: 3px;
-  padding: 0 7px;
-  border: 1px solid color-mix(in srgb, var(--tone) 65%, transparent);
-  border-radius: 999px;
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  border-radius: 2px;
   color: var(--text);
-  font-size: 11.5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .step-readiness[data-readiness='ready'] {

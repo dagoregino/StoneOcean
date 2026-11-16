@@ -2,36 +2,30 @@ import type { HealthStore } from '../../data/HealthStore';
 import type { ResourceStore } from '../../data/resources/ResourceStore';
 import { INDICATOR_RULES } from '../../domain/evidence/indicatorRules';
 import { daysUntil } from '../../domain/resources/dates';
-import { conditionOf, crewFindings, freeUnits } from '../../domain/resources/findings';
+import { conditionOf, freeUnits } from '../../domain/resources/findings';
 import { PROCEDURES, procedureName } from '../../domain/resources/protocols';
 import type { ProtocolReadiness, StepReadiness } from '../../domain/resources/readiness';
 import {
   AVAILABILITY_LABEL,
-  CATEGORY_LABEL,
   CATEGORY_SHORT,
   isStock,
   LEVEL_RANK,
-  MOVEMENT_LABEL,
-  MOVEMENT_TYPES,
-  RESOURCE_CATEGORIES,
   TRAINING_LABEL,
   TRAINING_RANK,
   type Level,
-  type MovementType,
   type Resource,
   type ResourceCategory,
 } from '../../domain/resources/types';
 import { severity } from '../../domain/status';
 import type { IndicatorId } from '../../domain/types';
 import { h } from '../dom';
-import { openCrewForm, openImportDialog, openMovementForm, openResourceDetail, openResourceForm, openScanDialog, typeLabel } from './dialogs';
-import { confirmDialog, formatDate, formatDateTime, icon, levelBadge, toast } from './kit';
+import { openCrewForm, openImportDialog, openMovementForm, openResourceDetail, openResourceForm, typeLabel } from './dialogs';
+import { confirmDialog, formatDate, levelBadge, toast } from './kit';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview' },
   { id: 'inventory', label: 'Inventory' },
-  { id: 'movements', label: 'Movements' },
-  { id: 'crew', label: 'Crew capabilities' },
+  { id: 'crew', label: 'Who can help' },
   { id: 'alerts', label: 'Alerts' },
 ] as const;
 type SectionId = (typeof SECTIONS)[number]['id'];
@@ -50,13 +44,9 @@ export { READINESS_LEVEL };
 
 interface Filters {
   category: ResourceCategory | 'all';
-  search: string;
-  condition: 'all' | Level;
-  sort: 'name' | 'quantity' | 'expiry';
-  movementType: MovementType | 'all';
-  movementSearch: string;
   procedure: string;
   showAcknowledged: boolean;
+  stateFilter: 'all' | Level;
 }
 
 /**
@@ -69,7 +59,7 @@ export class ResourcesView {
   private readonly body = h('div', { class: 'res-body', role: 'tabpanel', id: 'res-panel', tabIndex: -1 });
   private readonly tabs: HTMLButtonElement[];
   private readonly notice = h('p', { class: 'res-sim-notice' });
-  private readonly filters: Filters = { category: 'all', search: '', condition: 'all', sort: 'name', movementType: 'all', movementSearch: '', procedure: '', showAcknowledged: false };
+  private readonly filters: Filters = { category: 'all', procedure: '', showAcknowledged: false, stateFilter: 'all' };
 
   constructor(
     parent: HTMLElement,
@@ -82,13 +72,12 @@ export class ResourcesView {
       h(
         'header',
         { class: 'res-head' },
-        h('div', null, h('h2', null, 'Medical Resources'), h('p', { class: 'res-head-sub' }, 'What is on board, what state it is in, and who is trained to use it.')),
+        h('div', null, h('h2', null, 'Medical Supplies'), h('p', { class: 'res-head-sub' }, 'What is on board and who can help.')),
         h(
           'div',
           { class: 'res-head-actions' },
-          h('button', { class: 'button button-quiet', type: 'button', onclick: () => openScanDialog(store, this.user()) }, icon('scan'), 'Find by code'),
           h('button', { class: 'button button-quiet', type: 'button', onclick: () => openMovementForm(store, this.user()) }, 'Record movement'),
-          h('button', { class: 'button', type: 'button', onclick: () => openResourceForm(store, undefined, this.filters.category === 'all' ? undefined : this.filters.category) }, '+ Register resource'),
+          h('button', { class: 'button', type: 'button', onclick: () => openResourceForm(store, undefined, undefined) }, '+ Register resource'),
         ),
       ),
       this.notice,
@@ -146,7 +135,7 @@ export class ResourcesView {
     const focusId = active && this.body.contains(active) ? active.id : '';
     const caret = focusId && 'selectionStart' in active! ? active!.selectionStart : null;
     const scroll = this.body.scrollTop;
-    const views: Record<SectionId, () => HTMLElement[]> = { overview: () => this.overview(), inventory: () => this.inventory(), movements: () => this.movementsSection(), crew: () => this.crewSection(), alerts: () => this.alertsSection() };
+    const views: Record<SectionId, () => HTMLElement[]> = { overview: () => this.overview(), inventory: () => this.inventory(), crew: () => this.crewSection(), alerts: () => this.alertsSection() };
     this.body.replaceChildren(...views[this.section]());
     this.body.scrollTop = scroll;
     if (focusId) {
@@ -160,20 +149,7 @@ export class ResourcesView {
 
   private overview(): HTMLElement[] {
     const { store } = this;
-    const now = store.today;
-    const active = store.activeResources;
-    const count = (category: ResourceCategory, usable: boolean): number => active.filter((r) => r.category === category && (!usable || conditionOf(r, now).level !== 'critical')).length;
     const alerts = store.alerts;
-    const kinds = (...list: string[]): number => new Set(alerts.filter((a) => list.includes(a.kind)).map((a) => a.subjectId)).size;
-    const card = (label: string, value: number, detail: string, level: Level, onOpen: () => void, iconName?: Parameters<typeof icon>[0]): HTMLElement =>
-      h(
-        'button',
-        { class: 'res-stat', type: 'button', dataset: { level: value > 0 || level === 'ok' ? level : 'ok' }, onclick: onOpen },
-        h('span', { class: 'res-stat-label' }, iconName ? icon(iconName) : null, label),
-        h('span', { class: 'res-stat-value' }, String(value)),
-        h('span', { class: 'res-stat-detail' }, detail),
-      );
-    const of = (category: ResourceCategory): string => `of ${count(category, false)} registered`;
 
     const plan = this.health.medicalPlan;
     const readiness = store.readinessOfAll(plan);
@@ -181,82 +157,73 @@ export class ResourcesView {
     const ordered = [...readiness].sort((a, b) => Number(activeRules.has(b.ruleId)) - Number(activeRules.has(a.ruleId)));
 
     return [
-      h(
-        'section',
-        { class: 'res-stats' },
-        card('Resources registered', active.length, `${store.resources.length - active.length} deactivated`, 'ok', () => this.open('inventory', { category: 'all', condition: 'all' }), 'all'),
-        card('Medications usable', count('pharmaceutical', true), of('pharmaceutical'), 'ok', () => this.open('inventory', { category: 'pharmaceutical', condition: 'all' }), 'pharmaceutical'),
-        card('Devices operational', count('device', true), of('device'), 'ok', () => this.open('inventory', { category: 'device', condition: 'all' }), 'device'),
-        card('Consumables usable', count('consumable', true), of('consumable'), 'ok', () => this.open('inventory', { category: 'consumable', condition: 'all' }), 'consumable'),
-        card('Low stock', kinds('low_stock', 'out_of_stock', 'all_reserved'), 'at or below the minimum', 'attention', () => this.open('alerts')),
-        card('Expiring or expired', kinds('expiring_soon', 'expired'), 'within 30 days, or past', 'attention', () => this.open('alerts')),
-        card('Equipment needing work', kinds('out_of_service', 'needs_attention', 'calibration_overdue', 'calibration_due', 'maintenance_overdue', 'maintenance_due', 'inspection_overdue', 'inspection_due', 'battery_low'), 'service, calibration, inspection', 'attention', () => this.open('alerts')),
-        card('Open alerts', alerts.length, `${alerts.filter((a) => a.level === 'critical').length} critical`, alerts.some((a) => a.level === 'critical') ? 'critical' : 'attention', () => this.open('alerts'), 'alert'),
-      ),
+      this.readinessRing(readiness),
       h(
         'section',
         { class: 'res-card' },
-        h('div', { class: 'res-card-head' }, h('h3', null, 'Can the protocols be carried out?'), h('p', null, 'Each approved protocol checked against what is on board and who is trained. A protocol that is active now is listed first.')),
+        h('div', { class: 'res-card-head' }, h('h3', null, 'Can I do these treatments?'), h('p', null, 'Each treatment checked against what is on board and who is trained. Active ones first.')),
         h(
-          'div',
-          { class: 'res-table-wrap' },
+          'details',
+          { class: 'fold' },
+          h('summary', null, `All protocols (${ordered.length})`),
           h(
-            'table',
-            { class: 'res-table' },
-            h('thead', null, h('tr', null, h('th', null, 'Protocol'), h('th', null, 'Readiness'), h('th', { class: 'num' }, 'Steps ready'), h('th', null, 'What limits it'))),
+            'div',
+            { class: 'res-table-wrap' },
             h(
-              'tbody',
-              null,
-              ...ordered.map((r) =>
-                h(
-                  'tr',
-                  { class: activeRules.has(r.ruleId) ? 'is-active' : '' },
-                  h('td', null, h('strong', null, r.condition), activeRules.has(r.ruleId) ? h('span', { class: 'res-active-tag' }, 'Active now') : null),
-                  h('td', null, protocolBadge(r)),
-                  h('td', { class: 'num' }, `${r.executable.length} / ${r.steps.length}`),
-                  h('td', { class: 'res-limit' }, r.steps.find((s) => s.readiness === 'blocked')?.limitations[0] ?? r.limitations[0] ?? '—'),
+              'table',
+              { class: 'res-table' },
+              h('thead', null, h('tr', null, h('th', null, 'Treatment'), h('th', null, 'Ready?'), h('th', { class: 'num' }, 'Steps I can do'), h('th', null, 'What is blocking?'))),
+              h(
+                'tbody',
+                null,
+                ...ordered.map((r) =>
+                  h(
+                    'tr',
+                    { class: activeRules.has(r.ruleId) ? 'is-active' : '' },
+                    h('td', null, h('strong', null, r.condition), activeRules.has(r.ruleId) ? h('span', { class: 'res-active-tag' }, 'Active now') : null),
+                    h('td', null, protocolBadge(r)),
+                    h('td', { class: 'num' }, `${r.executable.length} / ${r.steps.length}`),
+                    h('td', { class: 'res-limit' }, r.steps.find((s) => s.readiness === 'blocked')?.limitations[0] ?? r.limitations[0] ?? '—'),
+                  ),
                 ),
               ),
             ),
           ),
+          h('p', { class: 'res-field-hint' }, 'Being on board does not mean it can be used. See the treatment details for the full check.'),
         ),
-        h('p', { class: 'res-field-hint' }, 'This is a check of logistics. That something is on board does not mean using it is appropriate: that is decided by the protocol and the responsible medical staff. Open a protocol in Monitoring to see the full check, step by step.'),
       ),
       h(
         'section',
-        { class: 'res-two' },
-        h(
-          'div',
-          { class: 'res-card' },
-          h('div', { class: 'res-card-head' }, h('h3', null, 'Needs attention first')),
-          alerts.length === 0
-            ? h('p', { class: 'empty' }, 'Nothing needs attention.')
-            : h('ul', { class: 'res-alert-list' }, ...alerts.slice(0, 5).map((a) => h('li', { dataset: { level: a.level } }, h('strong', null, a.subjectName), h('span', null, a.message)))),
-          alerts.length > 5 ? h('button', { class: 'link-button', type: 'button', onclick: () => this.open('alerts') }, `See all ${alerts.length} alerts →`) : null,
-        ),
-        h(
-          'div',
-          { class: 'res-card' },
-          h('div', { class: 'res-card-head' }, h('h3', null, 'State by category')),
-          ...RESOURCE_CATEGORIES.map((category) => {
-            const items = active.filter((r) => r.category === category);
-            const by = (level: Level): number => items.filter((r) => conditionOf(r, now).level === level).length;
-            const parts: [Level, number, string][] = [
-              ['ok', by('ok'), 'ready'],
-              ['attention', by('attention'), 'need attention'],
-              ['critical', by('critical'), 'not usable'],
-            ];
-            return h(
-              'div',
-              { class: 'res-bar-row' },
-              h('span', { class: 'res-bar-label' }, CATEGORY_LABEL[category]),
-              h('span', { class: 'res-bar', 'aria-hidden': 'true' }, ...parts.filter(([, n]) => n > 0).map(([level, n]) => h('span', { dataset: { level }, style: `flex:${n}` }))),
-              h('span', { class: 'res-bar-text' }, parts.map(([, n, text]) => `${n} ${text}`).join(' · ')),
-            );
-          }),
-        ),
+        { class: 'res-card' },
+        h('div', { class: 'res-card-head' }, h('h3', null, 'Needs attention first')),
+        alerts.length === 0
+          ? h('p', { class: 'empty' }, 'Nothing needs attention.')
+          : h('ul', { class: 'res-alert-list' }, ...alerts.slice(0, 3).map((a) => h('li', { dataset: { level: a.level } }, h('strong', null, a.subjectName), h('span', null, a.message)))),
       ),
     ];
+  }
+
+  /** A single dependency-free ring showing protocol readiness. */
+  private readinessRing(readiness: readonly ProtocolReadiness[]): HTMLElement {
+    let total = 0;
+    let ready = 0;
+    for (const r of readiness) {
+      total += r.steps.length;
+      ready += r.steps.filter((s) => s.readiness === 'ready').length;
+    }
+    const pct = total === 0 ? 100 : Math.round((ready / total) * 100);
+    const tone: Level = pct >= 80 ? 'ok' : pct >= 50 ? 'attention' : 'critical';
+    const circumference = 2 * Math.PI * 28;
+    const offset = circumference * (1 - pct / 100);
+
+    const ring = h('div', { class: 'res-readiness-ring', style: `--tone: var(--${tone === 'ok' ? 'good' : tone === 'attention' ? 'warning' : 'critical'})` });
+    ring.innerHTML = `<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><circle cx="36" cy="36" r="28"></circle><circle cx="36" cy="36" r="28" class="prog" style="stroke-dashoffset:${offset.toFixed(1)}" stroke-dasharray="${circumference.toFixed(1)}"></circle></svg>`;
+    ring.dataset.level = tone;
+
+    const wrap = h('div', { class: 'res-readiness' });
+    wrap.append(ring);
+    wrap.append(h('div', null, h('div', { class: 'res-readiness-value' }, String(pct), h('span', null, '%')), h('div', { class: 'res-readiness-label' }, `${ready} of ${total} treatment steps ready`)));
+    return wrap;
   }
 
   /** Rules whose indicators are in caution or critical right now, according to the triage engine. */
@@ -273,99 +240,32 @@ export class ResourcesView {
   // ---------- Inventory ----------
 
   private inventory(): HTMLElement[] {
-    const { store, filters } = this;
+    const { store } = this;
     const now = store.today;
-    const term = filters.search.trim().toLowerCase();
     const rows = store.resources
-      .filter((r) => filters.category === 'all' || r.category === filters.category)
-      .filter((r) => !term || r.name.toLowerCase().includes(term) || r.id.toLowerCase().includes(term) || (r.lot ?? '').toLowerCase().includes(term))
       .map((r) => ({ r, condition: conditionOf(r, now) }))
-      .filter(({ condition }) => (filters.condition === 'all' ? condition.level !== 'inactive' || filters.search !== '' : condition.level === filters.condition))
-      .sort((a, b) => {
-        if (filters.sort === 'quantity') return freeUnits(a.r) - freeUnits(b.r) || a.r.name.localeCompare(b.r.name);
-        if (filters.sort === 'expiry') return (a.r.expiresOn ?? '9999').localeCompare(b.r.expiresOn ?? '9999') || a.r.name.localeCompare(b.r.name);
-        return a.r.name.localeCompare(b.r.name);
-      });
+      .filter(({ condition }) => this.filters.stateFilter === 'all' || condition.level === this.filters.stateFilter)
+      .sort((a, b) => a.r.name.localeCompare(b.r.name));
 
-    const category = filters.category;
     const columns: { head: string; num?: boolean; cell: (r: Resource) => string | HTMLElement }[] = [
       { head: 'Name', cell: (r) => h('span', { class: 'res-name' }, h('strong', null, r.name), h('span', { class: 'res-id' }, r.id, r.simulated ? ' · simulated' : '')) },
+      { head: 'Category', cell: (r) => CATEGORY_SHORT[r.category] },
+      { head: 'Free / on board', num: true, cell: (r) => (isStock(r.category) ? `${freeUnits(r)} / ${r.quantity} ${r.unit}` : `${r.quantity}`) },
     ];
-    if (category === 'all') columns.push({ head: 'Category', cell: (r) => CATEGORY_SHORT[r.category] });
-    columns.push({ head: category === 'device' || category === 'emergency' ? 'Units' : 'Free / on board', num: true, cell: (r) => (isStock(r.category) ? `${freeUnits(r)} / ${r.quantity} ${r.unit}` : `${r.quantity}`) });
-    if (category === 'pharmaceutical') columns.push({ head: 'Lot', cell: (r) => r.lot ?? '—' });
-    if (category === 'consumable') columns.push({ head: 'Minimum', num: true, cell: (r) => (r.minStock === null ? '—' : String(r.minStock)) });
-    if (category === 'pharmaceutical' || category === 'consumable' || category === 'all') columns.push({ head: 'Expires', cell: (r) => formatDate(r.expiresOn) });
-    if (category === 'pharmaceutical') columns.push({ head: 'Storage', cell: (r) => r.storage ?? '—' });
-    if (category === 'device') {
-      columns.push({ head: 'Brand and model', cell: (r) => [r.brand, r.model].filter(Boolean).join(' ') || '—' });
-      columns.push({ head: 'Battery', num: true, cell: (r) => (typeof r.batteryPct === 'number' ? `${r.batteryPct}%` : '—') });
-      columns.push({ head: 'Last maintenance', cell: (r) => formatDate(r.lastMaintenance) });
-      columns.push({ head: 'Next calibration', cell: (r) => formatDate(r.nextCalibration) });
-    }
-    if (category === 'emergency') {
-      columns.push({ head: 'Last inspection', cell: (r) => formatDate(r.lastInspection) });
-      columns.push({ head: 'Next inspection', cell: (r) => formatDate(r.nextInspection) });
-    }
-    columns.push({ head: 'Location', cell: (r) => r.location });
 
-    const search = h('input', { id: 'res-search', class: 'res-input res-search', type: 'search', placeholder: 'Search by name, identifier or lot', value: filters.search, 'aria-label': 'Search the inventory' });
-    search.addEventListener('input', () => {
-      filters.search = search.value;
-      this.render();
-    });
-    const select = <K extends 'condition' | 'sort'>(key: K, label: string, options: [Filters[K], string][]): HTMLElement => {
-      const control = h('select', { class: 'res-input', 'aria-label': label }, ...options.map(([value, text]) => h('option', { value }, text)));
-      control.value = filters[key];
-      control.addEventListener('change', () => {
-        filters[key] = control.value as Filters[K];
-        this.render();
-      });
-      return control;
-    };
+    const filterChip = (label: string, value: 'all' | Level, tone?: string): HTMLElement =>
+      h('button', {
+        class: 'res-chip',
+        type: 'button',
+        'aria-pressed': String(this.filters.stateFilter === value),
+        onclick: () => { this.filters.stateFilter = value; this.render(); },
+        style: tone ? `--tone: var(--${tone})` : '',
+      }, label);
 
     return [
-      h(
-        'div',
-        { class: 'res-chips', role: 'group', 'aria-label': 'Category' },
-        ...(['all', ...RESOURCE_CATEGORIES] as const).map((c) =>
-          h(
-            'button',
-            {
-              class: 'res-chip',
-              type: 'button',
-              'aria-pressed': String(filters.category === c),
-              onclick: () => {
-                filters.category = c;
-                this.render();
-              },
-            },
-            icon(c),
-            c === 'all' ? 'All' : CATEGORY_LABEL[c],
-            h('span', { class: 'res-chip-count' }, String(store.activeResources.filter((r) => c === 'all' || r.category === c).length)),
-          ),
-        ),
-      ),
-      h(
-        'div',
-        { class: 'res-toolbar' },
-        search,
-        select('condition', 'Filter by state', [
-          ['all', 'All active'],
-          ['ok', 'Ready'],
-          ['attention', 'Needs attention'],
-          ['critical', 'Not usable'],
-          ['inactive', 'Deactivated'],
-        ]),
-        select('sort', 'Sort by', [
-          ['name', 'Sort: name'],
-          ['quantity', 'Sort: lowest quantity'],
-          ['expiry', 'Sort: earliest expiry'],
-        ]),
-        h('button', { class: 'button button-quiet', type: 'button', onclick: () => openImportDialog(store) }, 'Import / export'),
-      ),
+      h('div', { class: 'res-toolbar' }, filterChip('All', 'all'), filterChip('Ready', 'ok', 'good'), filterChip('Needs attention', 'attention', 'warning'), filterChip('Not usable', 'critical', 'critical'), h('span', { class: 'res-spacer' }), h('button', { class: 'button button-quiet', type: 'button', onclick: () => openImportDialog(store) }, 'Import / export'), h('button', { class: 'button', type: 'button', onclick: () => openResourceForm(store, undefined, undefined) }, '+ Register resource')),
       rows.length === 0
-        ? h('p', { class: 'empty res-empty' }, store.resources.length === 0 ? 'No resources registered yet. Use “Register resource” or import a file.' : 'No resources match. Clear the search or change the filters.')
+        ? h('p', { class: 'empty res-empty' }, store.resources.length === 0 ? 'No resources registered yet. Use “Register resource” to add one.' : 'No resources match.')
         : h(
             'div',
             { class: 'res-table-wrap res-card' },
@@ -393,62 +293,9 @@ export class ResourcesView {
               ),
             ),
           ),
-      h('p', { class: 'res-field-hint' }, `${rows.length} shown. “Free” is what can be used now: units on board minus units reserved.`),
+      h('p', { class: 'res-field-hint' }, `${rows.length} shown. “Free” = on board minus reserved.`),
     ];
   }
-
-  // ---------- Movements ----------
-
-  private movementsSection(): HTMLElement[] {
-    const { store, filters } = this;
-    const term = filters.movementSearch.trim().toLowerCase();
-    const rows = store.movements.filter((m) => (filters.movementType === 'all' || m.type === filters.movementType) && (!term || `${m.resourceName} ${m.resourceId} ${m.user} ${m.reason}`.toLowerCase().includes(term)));
-    const search = h('input', { id: 'res-move-search', class: 'res-input res-search', type: 'search', placeholder: 'Search by resource, person or reason', value: filters.movementSearch, 'aria-label': 'Search movements' });
-    search.addEventListener('input', () => {
-      filters.movementSearch = search.value;
-      this.render();
-    });
-    const type = h('select', { class: 'res-input', 'aria-label': 'Filter by type' }, h('option', { value: 'all' }, 'All movements'), ...MOVEMENT_TYPES.map((t) => h('option', { value: t }, MOVEMENT_LABEL[t])));
-    type.value = filters.movementType;
-    type.addEventListener('change', () => {
-      filters.movementType = type.value as Filters['movementType'];
-      this.render();
-    });
-    const sign = (t: MovementType): string => (t === 'entry' || t === 'restock' || t === 'return' ? '+' : t === 'reservation' ? '' : '−');
-    return [
-      h('div', { class: 'res-toolbar' }, search, type, h('button', { class: 'button', type: 'button', onclick: () => openMovementForm(store, this.user()) }, 'Record movement')),
-      rows.length === 0
-        ? h('p', { class: 'empty res-empty' }, store.movements.length === 0 ? 'No movements recorded yet.' : 'No movements match.')
-        : h(
-            'div',
-            { class: 'res-table-wrap res-card' },
-            h(
-              'table',
-              { class: 'res-table' },
-              h('thead', null, h('tr', null, h('th', null, 'When'), h('th', null, 'Resource'), h('th', null, 'Movement'), h('th', { class: 'num' }, 'Quantity'), h('th', { class: 'num' }, 'On board after'), h('th', null, 'Recorded by'), h('th', null, 'Reason'))),
-              h(
-                'tbody',
-                null,
-                ...rows.slice(0, 300).map((m) =>
-                  h(
-                    'tr',
-                    null,
-                    h('td', null, formatDateTime(m.at)),
-                    h('td', null, h('button', { class: 'link-button', type: 'button', onclick: () => openResourceDetail(store, this.user(), m.resourceId) }, m.resourceName), h('span', { class: 'res-id' }, m.resourceId)),
-                    h('td', null, h('span', { class: 'res-move', dataset: { type: m.type } }, MOVEMENT_LABEL[m.type])),
-                    h('td', { class: 'num' }, `${sign(m.type)}${m.quantity}`),
-                    h('td', { class: 'num' }, String(m.balance.quantity), m.balance.reserved > 0 ? h('span', { class: 'res-id' }, `${m.balance.reserved} reserved`) : null),
-                    h('td', null, m.user),
-                    h('td', null, m.reason, m.notes ? h('span', { class: 'res-note' }, ` — ${m.notes}`) : null),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      h('p', { class: 'res-field-hint' }, `${rows.length} movement${rows.length === 1 ? '' : 's'}, newest first. The history is a record: movements are added, never edited or removed. To correct a mistake, record the opposite movement and say why.`),
-    ];
-  }
-
   // ---------- Crew ----------
 
   private crewSection(): HTMLElement[] {
@@ -473,12 +320,12 @@ export class ResourcesView {
       h(
         'section',
         { class: 'res-card' },
-        h('div', { class: 'res-card-head' }, h('h3', null, 'Who can do it?'), h('p', null, 'Pick a procedure to see who holds a certification for it, at what level, and whether they are available now.')),
+        h('div', { class: 'res-card-head' }, h('h3', null, 'Who can help?'), h('p', null, 'Pick a treatment to see who is trained and available.')),
         h('div', { class: 'res-toolbar' }, lookup),
         !filters.procedure
           ? null
           : holders.length === 0
-            ? h('p', { class: 'res-none' }, levelBadge('critical', 'Nobody'), ` No one on the roster holds a certification for “${procedureName(filters.procedure)}”.`)
+            ? h('p', { class: 'res-none' }, levelBadge('critical', 'Nobody'), ` No one on the crew is trained for “${procedureName(filters.procedure)}”.`)
             : h(
                 'ul',
                 { class: 'res-holder-list' },
@@ -490,49 +337,12 @@ export class ResourcesView {
                     null,
                     h('strong', null, member.name),
                     h('span', null, `${member.role} · ${TRAINING_LABEL[cert.level]}`),
-                    levelBadge(ok ? 'ok' : current ? 'attention' : 'critical', !current ? `Certification expired ${formatDate(cert.expiresOn)}` : member.availability === 'available' ? 'Available now' : AVAILABILITY_LABEL[member.availability]),
+                    levelBadge(ok ? 'ok' : current ? 'attention' : 'critical', !current ? `Training expired ${formatDate(cert.expiresOn)}` : member.availability === 'available' ? 'Available now' : AVAILABILITY_LABEL[member.availability]),
                   );
                 }),
               ),
       ),
-      h('div', { class: 'res-toolbar' }, h('h3', { class: 'res-subhead' }, `Roster (${crew.length})`), h('span', { class: 'res-spacer' }), h('button', { class: 'button', type: 'button', onclick: () => openCrewForm(store) }, '+ Add crew member')),
-      crew.length === 0
-        ? h('p', { class: 'empty res-empty' }, 'No crew members registered.')
-        : h(
-            'div',
-            { class: 'res-crew-grid' },
-            ...crew.map((member) => {
-              const findings = crewFindings(member, now, procedureName);
-              return h(
-                'article',
-                { class: 'res-card res-crew' },
-                h(
-                  'header',
-                  null,
-                  h('div', null, h('h4', null, member.name), h('p', null, `${member.role} · ${member.id}`, member.simulated ? ' · simulated' : '')),
-                  levelBadge(member.availability === 'available' ? 'ok' : member.availability === 'off_duty' ? 'attention' : 'inactive', AVAILABILITY_LABEL[member.availability]),
-                ),
-                member.certifications.length === 0
-                  ? h('p', { class: 'empty' }, 'No medical training on record.')
-                  : h(
-                      'ul',
-                      { class: 'res-cert-list' },
-                      ...member.certifications.map((cert) => {
-                        const days = cert.expiresOn ? daysUntil(cert.expiresOn, now) : null;
-                        const level: Level = days === null ? 'ok' : days < 0 ? 'critical' : days <= 30 ? 'attention' : 'ok';
-                        return h(
-                          'li',
-                          { dataset: { level } },
-                          h('span', { class: 'res-cert-name' }, procedureName(cert.procedureCode)),
-                          h('span', { class: 'res-cert-meta' }, `${TRAINING_LABEL[cert.level].split(':')[0]} · ${cert.expiresOn ? `${days! < 0 ? 'expired' : 'valid until'} ${formatDate(cert.expiresOn)}` : 'does not lapse'}`),
-                        );
-                      }),
-                    ),
-                findings.length > 0 ? h('p', { class: 'res-crew-flag' }, `${findings.length} certification${findings.length === 1 ? '' : 's'} expired or expiring`) : null,
-                h('button', { class: 'button button-quiet button-small', type: 'button', 'aria-label': `Edit ${member.name}`, onclick: () => openCrewForm(store, member) }, 'Edit'),
-              );
-            }),
-          ),
+      h('div', { class: 'res-toolbar' }, h('span', { class: 'res-subhead' }, `Roster: ${crew.length} crew members`), h('span', { class: 'res-spacer' }), h('button', { class: 'button', type: 'button', onclick: () => openCrewForm(store) }, '+ Add crew member')),
     ];
   }
 
@@ -564,7 +374,7 @@ export class ResourcesView {
               'li',
               { dataset: { level: alert.level }, class: seen ? 'is-seen' : '' },
               h('span', { class: 'res-alert-icon', 'aria-hidden': 'true' }, alert.level === 'critical' ? '◆' : '▲'),
-              h('div', { class: 'res-alert-text' }, h('strong', null, `${alert.label}: ${alert.subjectName}`), h('span', null, alert.message), h('span', { class: 'res-id' }, alert.subject === 'crew' ? 'Crew certification' : `${alert.subjectId} · ${CATEGORY_LABEL[alert.category!]}`)),
+              h('div', { class: 'res-alert-text' }, h('strong', null, `${alert.label}: ${alert.subjectName}`), h('span', null, alert.message)),
               h(
                 'div',
                 { class: 'res-actions' },
@@ -580,12 +390,12 @@ export class ResourcesView {
       h(
         'div',
         { class: 'res-toolbar' },
-        h('p', { class: 'res-field-hint' }, 'One alert per problem. An acknowledged alert stays quiet until the problem is fixed; if the same problem comes back later, it is shown again.'),
+        h('p', { class: 'res-field-hint' }, 'Acknowledged alerts stay quiet until fixed.'),
         h('span', { class: 'res-spacer' }),
         h('label', { class: 'check', for: 'res-show-ack' }, toggle, `Show acknowledged (${acknowledged})`),
       ),
       shown.length === 0 ? h('p', { class: 'empty res-empty' }, all.length === 0 ? 'No alerts. Everything registered is in date, in stock and in service.' : 'No open alerts. All have been acknowledged.') : null,
-      group('critical', 'Critical', 'Not usable as it stands: expired, out of stock, out of service or past calibration.'),
+      group('critical', 'Critical', 'Expired, out of stock, out of service or past calibration.'),
       group('attention', 'Needs attention', 'Still usable, but something is coming due or running low.'),
     ].filter((el): el is HTMLElement => el !== null);
   }

@@ -1,0 +1,175 @@
+/* Tutorial spotlight overlay. */
+.tut-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  pointer-events: none;
+}
+
+.tut-hole {
+  position: fixed;
+  pointer-events: none;
+  border: 2px solid rgba(0, 229, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(5, 10, 20, 0.75), 0 0 20px rgba(0, 229, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.tut-card {
+  position: fixed;
+  pointer-events: auto;
+  width: min(320px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.tut-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tut-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #0b0c0d;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+  flex: none;
+}
+
+.tut-title {
+  font-weight: 600;
+  font-size: 15px;
+  flex: 1;
+}
+
+.tut-step-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tut-desc {
+  color: var(--text-2);
+  margin-bottom: 10px;
+}
+
+.tut-timer {
+  height: 3px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.tut-timer-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 100%;
+  transition: width 0.1s linear;
+}
+
+.tut-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  transform: rotate(45deg);
+}
+
+.tut-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tut-actions .spacer {
+  flex: 1;
+}
+
+.tut-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.tut-btn.primary {
+  background: var(--action);
+  color: #0b0c0d;
+  border-color: var(--action);
+  font-weight: 600;
+}
+
+.tut-btn:hover {
+  background: var(--surface-3);
+}
+
+.tut-btn.primary:hover {
+  filter: brightness(1.05);
+}
+
+.tut-prompt {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 901;
+  pointer-events: auto;
+  width: min(320px, calc(100vw - 40px));
+  padding: 14px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+}
+
+.tut-prompt p {
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.tut-prompt-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tut-prompt-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tut-pause {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+.tut-pause:hover {
+  color: var(--text);
+}

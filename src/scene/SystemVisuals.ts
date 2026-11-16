@@ -11,7 +11,7 @@ const COLORS: Record<HealthStatus, THREE.Color> = {
 };
 
 /** The body at rest: a calm grey-blue, so that only what matters carries a status color. */
-const NEUTRAL = new THREE.Color(0x7f95b8);
+const NEUTRAL = new THREE.Color(0x9a948a);
 /** While the body is being scanned through the suit, everything but the selected system steps back. */
 const SUBDUED_OPACITY = 0.2;
 const SUBDUED_FLAGGED_OPACITY = 0.42;

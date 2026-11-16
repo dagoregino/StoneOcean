@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /** Tint of the suit once it has become a hologram. */
-export const HOLOGRAM_COLOR = 0x6fb4ff;
+export const HOLOGRAM_COLOR = 0xa9c7d8;
 
 /**
  * Draw order of everything that is, or can become, see-through in the twin. Three.js draws

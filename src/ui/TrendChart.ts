@@ -14,8 +14,8 @@ const RIGHT_AXIS = 46;
 const SPARSE_LIMIT = 28;
 const MILESTONE_REACH_PX = 9;
 /** Not status colors: those are reserved for status. */
-const COMPARE_COLOR = '#38c6d9';
-const SYMPTOM_COLOR = '#b48cff';
+const COMPARE_COLOR = '#b9b4a9';
+const SYMPTOM_COLOR = '#c98e9e';
 
 export const TREND_WINDOWS = ['24h', '7d', '14d', 'mission'] as const;
 export type TrendWindow = (typeof TREND_WINDOWS)[number];

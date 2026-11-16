@@ -96,7 +96,7 @@ const SURFACE_FRAGMENT = /* glsl */ `
 
     // The atmosphere seen edge-on, plus a warm line where day meets night.
     float fresnel = pow(1.0 - max(dot(n, v), 0.0), 3.0);
-    result += vec3(0.22, 0.52, 1.0) * fresnel * (0.22 + 0.78 * day);
+    result += vec3(0.30, 0.48, 0.64) * fresnel * (0.22 + 0.78 * day);
     result += vec3(1.0, 0.48, 0.22) * 0.07 * (1.0 - abs(day * 2.0 - 1.0));
 
     gl_FragColor = vec4(result * uDim, 1.0);
@@ -115,7 +115,7 @@ const ATMOSPHERE_FRAGMENT = /* glsl */ `
     // Back faces only: 1 right at the planet's limb, falling to 0 at the edge of the shell.
     float halo = pow(clamp(-dot(n, v) / uEdge, 0.0, 1.0), 2.6);
     float sunward = 0.30 + 0.70 * smoothstep(-0.55, 0.55, dot(n, uSun));
-    gl_FragColor = vec4(vec3(0.24, 0.56, 1.0) * halo * sunward * uDim, 1.0);
+    gl_FragColor = vec4(vec3(0.34, 0.54, 0.70) * halo * sunward * uDim, 1.0);
   }
 `;
 

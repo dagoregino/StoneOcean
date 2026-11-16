@@ -59,6 +59,7 @@ export class ResourceStore {
   private isReady = false;
   private failure: string | null = null;
   private sequence = 0;
+  private readonly channel: BroadcastChannel | null;
   private readonly now: () => Date;
 
   constructor(
@@ -66,6 +67,10 @@ export class ResourceStore {
     private readonly options: ResourceStoreOptions,
   ) {
     this.now = options.now ?? (() => new Date());
+    // Cross-tab sync: a write in one tab tells the others to reload from IndexedDB.
+    // shortcut: no conflict resolution; last write wins. Upgrade path: per-record versioning + merge.
+    this.channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('helios-resources') : null;
+    this.channel?.addEventListener('message', () => void this.refresh());
   }
 
   /** Loads what is saved. On the very first run, loads the demonstration data instead. */
@@ -82,10 +87,25 @@ export class ResourceStore {
       this.failure = error instanceof Error ? error.message : 'The local database could not be opened.';
     }
     this.isReady = true;
-    this.events.emit('change', undefined);
+    this.emitChange();
   }
 
-  // ---------- Reads ----------
+  private emitChange(): void {
+    this.events.emit('change', undefined);
+    this.channel?.postMessage('changed');
+  }
+
+  /** Reload from IndexedDB (used after a write in another tab). */
+  async refresh(): Promise<void> {
+    if (!this.isReady) return;
+    try {
+      const snapshot = await this.repository.load();
+      this.adopt(snapshot);
+      this.events.emit('change', undefined);
+    } catch {
+      // Keep the current in-memory state if reload fails.
+    }
+  }
 
   get ready(): boolean {
     return this.isReady;
@@ -154,7 +174,7 @@ export class ResourceStore {
     await this.repository.write({ resources: [resource], movements: movement ? [movement] : [] });
     this.resourceMap.set(resource.id, resource);
     if (movement) this.movementList.unshift(movement);
-    this.events.emit('change', undefined);
+    this.emitChange();
     return resource;
   }
 
@@ -175,7 +195,7 @@ export class ResourceStore {
     if (next.minStock === null) updated.minStock = null;
     await this.repository.write({ resources: [updated] });
     this.resourceMap.set(updated.id, updated);
-    this.events.emit('change', undefined);
+    this.emitChange();
     return updated;
   }
 
@@ -186,7 +206,7 @@ export class ResourceStore {
     const updated = { ...current, active, updatedAt: this.now().toISOString() };
     await this.repository.write({ resources: [updated] });
     this.resourceMap.set(updated.id, updated);
-    this.events.emit('change', undefined);
+    this.emitChange();
   }
 
   /** Records a movement and the count it produces, together. */
@@ -199,7 +219,7 @@ export class ResourceStore {
     await this.repository.write({ resources: [updated], movements: [movement] });
     this.resourceMap.set(updated.id, updated);
     this.movementList.unshift(movement);
-    this.events.emit('change', undefined);
+    this.emitChange();
     return movement;
   }
 
@@ -221,7 +241,7 @@ export class ResourceStore {
     await this.repository.write({ resources, movements });
     for (const r of resources) this.resourceMap.set(r.id, r);
     this.movementList.unshift(...movements.reverse());
-    this.events.emit('change', undefined);
+    this.emitChange();
     return resources.length;
   }
 
@@ -257,7 +277,7 @@ export class ResourceStore {
     };
     await this.repository.write({ crew: [member] });
     this.crewMap.set(member.id, member);
-    this.events.emit('change', undefined);
+    this.emitChange();
     return member;
   }
 
@@ -265,7 +285,7 @@ export class ResourceStore {
     if (!this.crewMap.has(id)) return;
     await this.repository.write({ deleteCrew: [id] });
     this.crewMap.delete(id);
-    this.events.emit('change', undefined);
+    this.emitChange();
   }
 
   // ---------- Alerts ----------
@@ -278,7 +298,7 @@ export class ResourceStore {
     const open = new Set(this.allAlerts.map((a) => a.id));
     this.acknowledgedIds = new Set([...this.acknowledgedIds].filter((id) => open.has(id)));
     await this.repository.write({ acknowledged: [...this.acknowledgedIds] });
-    this.events.emit('change', undefined);
+    this.emitChange();
   }
 
   // ---------- Demonstration data ----------
@@ -288,7 +308,7 @@ export class ResourceStore {
     await this.repository.clear();
     await this.seed();
     this.adopt(await this.repository.load());
-    this.events.emit('change', undefined);
+    this.emitChange();
   }
 
   private async seed(): Promise<void> {

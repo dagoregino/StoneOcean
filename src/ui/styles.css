@@ -1,24 +1,34 @@
-/* Design tokens. Status colors are reserved for status and always ship with a glyph + label. */
+/* Design tokens. Three type voices: display serif, UI sans, instrument mono.
+   Status colors are reserved for status and always ship with a glyph + label. */
 :root {
   color-scheme: dark;
-  --bg: #05070d;
-  --surface: #0d111b;
-  --surface-2: #131926;
-  --surface-3: #1b2233;
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.18);
-  --text: #f0efec;
-  --text-2: #c3c2b7;
-  --muted: #898781;
-  --grid: #2c3242;
-  --accent: #3987e5;
-  --series: #3987e5;
-  --good: #0ca30c;
-  --warning: #fab219;
-  --critical: #d03b3b;
-  --unknown: #898781;
-  --radius: 10px;
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --bg: #0b0c0d;
+  --surface: #111315;
+  --surface-2: #181b1e;
+  --surface-3: #202428;
+  --border: #2a2e32;
+  --border-strong: #3f454b;
+  --text: #ece8df;
+  --text-2: #b9b4a9;
+  --muted: #8d897f;
+  --grid: #2a2e32;
+  --accent: #a9c7d8;
+  --series: #8fb3c7;
+  --good: #57b978;
+  --warning: #d9a13c;
+  --critical: #e05a4e;
+  --unknown: #8d897f;
+  --symptom: #c98e9e;
+  --earth: #7fa5c4;
+  --signal: #b7d3e6;
+  --radius: 4px;
+  --radius-lg: 8px;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --font: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-ui: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --font-mono: 'Cascadia Mono', 'SF Mono', ui-monospace, Consolas, 'Liberation Mono', monospace;
 }
 
 * {
@@ -38,8 +48,9 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.45 var(--font);
+  font: 14px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.004em;
 }
 
 h1,
@@ -55,6 +66,13 @@ ul {
   margin: 0;
 }
 
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
 button,
 input,
 select {
@@ -63,7 +81,7 @@ select {
 }
 
 a {
-  color: #8ab8f3;
+  color: var(--accent);
 }
 
 :focus-visible {
@@ -157,23 +175,32 @@ a {
 }
 
 .brand-mark {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  box-shadow: inset 0 0 0 5px var(--surface), inset 0 0 0 30px var(--accent);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--accent);
+}
+
+.brand-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .brand h1 {
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 21px;
-  font-weight: 650;
-  letter-spacing: 0.01em;
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1;
 }
 
 .brand p {
+  margin-top: 2px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
 }
 
 .mission {
@@ -224,11 +251,57 @@ a {
 /* ---------- System list ---------- */
 .section-title,
 .eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+/* Instrument labels and figures share one voice across the console. */
+.mission-clock,
+.env-facts,
+.kpi-system,
+.kpi-value,
+.indicator-value,
+.trend-current,
+.res-stat-value,
+.res-detail-count strong,
+.consult-countdown,
+.los-countdown,
+.tour-delay-side strong,
+.checkin-changes strong,
+.dtv-step > summary,
+.res-table th,
+.res-form-section legend,
+.tour-caption-title,
+.tour-eyebrow,
+.tour-loop-step,
+.tour-delay-name,
+.tour-delay-label,
+.tour-verify-cell span,
+.checkin-step,
+.checkin-plan-kind,
+.los-title,
+.guide-step-hint,
+.guide-source,
+.guide-number,
+.los-title,
+.res-active-tag {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-value,
+.indicator-value,
+.trend-current,
+.res-stat-value,
+.consult-countdown,
+.tour-delay-side strong,
+.checkin-changes strong {
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .section-title {
@@ -385,6 +458,25 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  border: 0;
+  padding: 2px 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+  pointer-events: auto;
+}
+
+.legend-item:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.legend-item.is-active {
+  background: var(--surface-3);
+  color: var(--text);
+  outline: 1px solid var(--border-strong);
 }
 
 #hint {
@@ -403,8 +495,8 @@ a {
   max-width: 212px;
   padding: 7px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  background: rgba(13, 17, 27, 0.94);
+  border-radius: var(--radius);
+  background: var(--surface);
   font-size: 13px;
   pointer-events: none;
   z-index: 3;
@@ -422,8 +514,8 @@ a {
   max-width: calc(100% - 28px);
   padding: 6px 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: rgba(13, 17, 27, 0.92);
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--text-2);
   font-size: 12px;
   text-align: center;
@@ -451,18 +543,15 @@ a {
 }
 
 #simulator .eyebrow {
-  border-width: 1px;
-  border-style: none;
-  border-color: rgba(189, 16, 224, 1);
-  color: rgba(227, 184, 255, 1);
-  font-size: 21px;
+  color: var(--muted);
+  font-size: 10.5px;
 }
 
 #scenario {
-  border-radius: 22px;
-  background: linear-gradient(100deg, #bdfcf7 0%, #d9fff7 30%, #ffffff 52%, #efc8ff 75%, #d69cff 100%);
-  color: #131926;
-  font-weight: 600;
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 500;
 }
 
 .sim-row {
@@ -476,6 +565,42 @@ a {
   margin-top: 5px;
   font-size: 12px;
   color: var(--muted);
+}
+
+.sim-controls {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  margin-top: 8px;
+  background: var(--surface);
+}
+
+.sim-controls summary {
+  padding: 9px 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.sim-controls summary::-webkit-details-marker {
+  display: none;
+}
+
+.sim-controls summary::after {
+  content: '▾';
+  float: right;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.sim-controls[open] summary::after {
+  content: '▸';
+}
+
+.sim-controls[open] .sim-row,
+.sim-controls[open] .sim-description {
+  padding: 9px 12px;
 }
 
 select {
@@ -497,10 +622,10 @@ select {
 
 .button {
   padding: 6px 14px;
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
+  border: 1px solid var(--action);
+  border-radius: var(--radius);
+  background: var(--action);
+  color: #0b0c0d;
   font-weight: 600;
   cursor: pointer;
 }
@@ -518,9 +643,9 @@ select {
 
 #simulator .button-quiet {
   overflow: hidden;
-  border-radius: 23px;
-  background-color: rgba(35, 85, 152, 1);
-  color: rgba(242, 244, 255, 1);
+  border-radius: var(--radius);
+  background-color: var(--surface-2);
+  color: var(--text);
 }
 
 .link-button {
@@ -528,7 +653,7 @@ select {
   padding: 0;
   border: 0;
   background: none;
-  color: #8ab8f3;
+  color: var(--accent);
   cursor: pointer;
 }
 
@@ -550,9 +675,11 @@ select {
 
 .triage h2 {
   margin-top: 2px;
-  font-size: 18px;
-  font-weight: 650;
-  line-height: 1.25;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
 }
 
 .triage p {
@@ -577,7 +704,7 @@ select {
 
 .panel-body h3 {
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
   margin-bottom: 8px;
 }
 
@@ -663,7 +790,10 @@ select {
 
 .system-title h3 {
   margin: 0;
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .system-head p {
@@ -678,9 +808,9 @@ select {
 
 .chip {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius);
   color: var(--text-2);
   font-size: 11px;
   text-decoration: none;
@@ -721,11 +851,12 @@ a.chip:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--status, var(--unknown)) 70%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--status, var(--unknown)) 16%, transparent);
-  font-size: 12px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--status, var(--unknown)) 45%, var(--border));
+  border-left: 3px solid var(--status, var(--unknown));
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -752,7 +883,7 @@ a.chip:hover {
 .indicator-head h4 {
   margin-right: auto;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .indicator-reading {
@@ -764,7 +895,7 @@ a.chip:hover {
 
 .indicator-value {
   font-size: 30px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -811,8 +942,8 @@ a.chip:hover {
   width: 132px;
   padding: 6px 9px;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  background: rgba(5, 7, 13, 0.95);
+  border-radius: var(--radius);
+  background: var(--surface);
   font-size: 12px;
   color: var(--text-2);
   pointer-events: none;
@@ -844,7 +975,7 @@ a.chip:hover {
 .guidance h5 {
   margin-bottom: 4px;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .guidance ol {
@@ -989,7 +1120,7 @@ details p {
   align-items: center;
   gap: 7px;
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-2);
@@ -1109,7 +1240,7 @@ details p {
   border: 1px solid var(--border-strong);
   border-radius: 5px;
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 600;
   text-align: center;
   color: var(--text);
   cursor: help;
@@ -1229,9 +1360,9 @@ details p {
   gap: 8px;
   max-width: 220px;
   min-height: 32px;
-  padding: 3px 12px 3px 4px;
+  padding: 3px 10px 3px 4px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--surface-2);
   color: var(--text-2);
   font-size: 13px;
@@ -1249,11 +1380,12 @@ details p {
   flex: none;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--radius);
   background: var(--accent);
-  color: #fff;
+  color: #0b0c0d;
+  font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .crew-chip-name {
@@ -1279,7 +1411,7 @@ details p {
 
 .panel-scope-title h3 {
   font-size: 17px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .tabs {
@@ -1297,7 +1429,7 @@ details p {
   background: none;
   color: var(--text-2);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1335,7 +1467,7 @@ details p {
   background: none;
   color: var(--text-2);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1;
   cursor: pointer;
 }
@@ -1364,6 +1496,57 @@ details p {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 8px;
+}
+
+.kpi-grid.is-compact {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+
+.kpi-grid.is-compact .kpi {
+  padding: 8px 8px 7px;
+}
+
+.kpi-grid.is-compact .kpi-system,
+.kpi-grid.is-compact .kpi-chart,
+.kpi-grid.is-compact .kpi-note,
+.kpi-grid.is-compact .help-content {
+  display: none;
+}
+
+.kpi-grid.is-compact .kpi-main {
+  gap: 2px;
+}
+
+.kpi-grid.is-compact .kpi-figure {
+  margin-top: 4px;
+  gap: 4px;
+}
+
+.kpi-grid.is-compact .kpi-value {
+  font-size: 19px;
+}
+
+.kpi-grid.is-compact .kpi-unit {
+  font-size: 11px;
+}
+
+.kpi-grid.is-compact .kpi-foot {
+  margin-top: 6px;
+  gap: 5px;
+  justify-content: space-between;
+}
+
+.kpi-grid.is-compact .kpi-foot .badge,
+.kpi-grid.is-compact .kpi-foot .chip {
+  font-size: 9.5px;
+  padding: 1px 6px;
+}
+
+.section-hint {
+  margin: 0 0 8px 0;
+  color: var(--text-2);
+  font-size: 12.5px;
 }
 
 .kpi {
@@ -1398,7 +1581,7 @@ details p {
   flex-direction: column;
   color: var(--text-2);
   font-size: 12px;
-  font-weight: 550;
+  font-weight: 500;
   line-height: 1.25;
 }
 
@@ -1419,7 +1602,7 @@ details p {
 
 .kpi-value {
   font-size: 26px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -1502,7 +1685,7 @@ details p {
   padding: 9px 0;
   color: var(--text);
   font-size: 13.5px;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .fold-body {
@@ -1556,7 +1739,7 @@ details p {
 
 .trend-current {
   font-size: 26px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -1627,7 +1810,7 @@ details p {
 }
 
 .trend-key-compare {
-  background: #38c6d9;
+  background: var(--text-2);
 }
 
 .trend-key-band {
@@ -1701,7 +1884,7 @@ details p {
 
 .protocol-head h4 {
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .protocol-value {
@@ -1712,10 +1895,6 @@ details p {
 }
 
 /* ---------- Reporting discomfort ---------- */
-:root {
-  --symptom: #b48cff;
-}
-
 #viewport-tools {
   display: flex;
   gap: 8px;
@@ -1733,16 +1912,16 @@ details p {
   margin-left: auto;
   padding: 6px 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: rgba(12, 0, 37, 1);
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--text);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .tool-toggle:hover {
-  border-color: var(--symptom);
+  border-color: var(--border-strong);
 }
 
 .tool-toggle-icon {
@@ -1752,7 +1931,7 @@ details p {
 
 .tool-toggle[aria-pressed='true'] {
   border-color: var(--symptom);
-  background: rgba(12, 0, 37, 1);
+  background: var(--surface);
 }
 
 #hint.is-active {
@@ -1774,7 +1953,7 @@ details p {
   border: 1px solid var(--border-strong);
   border-top: 3px solid var(--symptom);
   border-radius: var(--radius);
-  background: rgba(13, 17, 27, 0.96);
+  background: var(--surface);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -1786,7 +1965,7 @@ details p {
 
 .symptom-form-head h3 {
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .icon-button {
@@ -1823,7 +2002,7 @@ details p {
   padding: 0;
   color: var(--text-2);
   font-size: 12px;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .symptom-label-row {
@@ -1834,7 +2013,7 @@ details p {
 
 .symptom-intensity-value {
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1878,14 +2057,14 @@ details p {
   display: block;
   padding: 4px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius);
   color: var(--text-2);
   font-size: 12.5px;
 }
 
 .choice input:checked + span {
   border-color: var(--symptom);
-  background: color-mix(in srgb, var(--symptom) 24%, transparent);
+  background: color-mix(in srgb, var(--symptom) 14%, transparent);
   color: var(--text);
 }
 
@@ -1901,7 +2080,7 @@ details p {
 }
 
 .symptom-error {
-  color: #ffb0b0;
+  color: color-mix(in srgb, var(--critical) 72%, #fff);
   font-size: 12.5px;
 }
 
@@ -1914,13 +2093,13 @@ details p {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px;
+  padding: 3px 9px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--surface-2);
   color: var(--text);
   font-size: 12px;
-  font-weight: 550;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -1959,8 +2138,8 @@ details p {
 }
 
 .mic-button[data-state='listening'] .mic-icon {
-  border-color: #ff8a8a;
-  background: #ff8a8a;
+  border-color: var(--critical);
+  background: var(--critical);
   animation: mic-pulse 1.2s ease-in-out infinite;
 }
 
@@ -2060,7 +2239,7 @@ details p {
 
 .note-suggestion-text strong {
   color: var(--text);
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .note-suggestion-why {
@@ -2124,18 +2303,20 @@ details p {
   align-items: center;
   gap: 9px;
   padding: 8px 16px 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 70%, #fff);
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
+  border: 1px solid var(--action);
+  border-radius: var(--radius);
+  background: var(--action);
+  color: #0b0c0d;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 22px color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: none;
 }
 
 .tool-primary:hover {
-  filter: brightness(1.1);
+  filter: none;
+  border-color: #f7f1e3;
+  background: #f7f1e3;
 }
 
 /* A small figure inside a scan frame. */
@@ -2150,14 +2331,10 @@ details p {
 }
 
 .twin-switch {
-  background: rgba(13, 17, 27, 0.85);
+  background: var(--surface);
 }
 
 /* ---------- Flight surgeon consultation (under the triage) ---------- */
-:root {
-  --earth: #4fa3e0;
-  --signal: #7fd1ff;
-}
 
 .consult {
   display: flex;
@@ -2185,18 +2362,18 @@ details p {
   align-items: center;
   align-self: flex-start;
   gap: 10px;
-  padding: 7px 14px 7px 10px;
+  padding: 7px 12px 7px 9px;
   border: 1px solid var(--earth);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--earth) 14%, var(--surface));
+  border-radius: var(--radius);
+  background: transparent;
   color: var(--text);
-  font-size: 14px;
-  font-weight: 650;
+  font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .consult-button:hover {
-  background: color-mix(in srgb, var(--earth) 24%, var(--surface));
+  background: var(--surface-2);
 }
 
 .consult-button-sub {
@@ -2210,13 +2387,10 @@ details p {
   flex: none;
   width: 18px;
   height: 18px;
+  border: 1px solid var(--earth);
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.55), transparent 40%),
-    radial-gradient(circle at 62% 58%, #3f9b5a 0 18%, transparent 19%),
-    radial-gradient(circle at 30% 70%, #3f9b5a 0 12%, transparent 13%),
-    var(--earth);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  background: radial-gradient(ellipse 50% 96% at 50% 50%, transparent 64%, var(--earth) 66% 72%, transparent 74%);
+  box-shadow: none;
 }
 
 .consult-delay,
@@ -2228,7 +2402,7 @@ details p {
 .consult-progress h3,
 .consult-response h3 {
   font-size: 14.5px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .consult-progress {
@@ -2272,7 +2446,7 @@ details p {
 
 .consult-countdown {
   font-size: 22px;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--signal);
 }
@@ -2410,7 +2584,7 @@ details p {
 }
 
 .signal-pulse-core {
-  fill: #e9f7ff;
+  fill: var(--text);
 }
 
 .earth-link:not([data-state='idle']) .signal-path {
@@ -2427,7 +2601,7 @@ details p {
 }
 
 .earth-link[data-state='awaiting'] .earth-globe {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 55%, transparent), 0 0 18px var(--signal);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--signal);
 }
 
 .earth-link[data-state='received'] .signal-habitat {
@@ -2447,26 +2621,24 @@ details p {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 10px 5px 6px;
+  padding: 5px 9px 5px 6px;
   border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(13, 17, 27, 0.78);
+  border-radius: var(--radius);
+  background: var(--surface);
   pointer-events: auto;
 }
 
 .earth-globe {
-  --earth-size: 32px;
+  --earth-size: 30px;
   flex: none;
   width: var(--earth-size);
   height: var(--earth-size);
+  border: 1px solid var(--earth);
   border-radius: 50%;
   background:
-    radial-gradient(circle at 33% 30%, rgba(255, 255, 255, 0.5), transparent 38%),
-    radial-gradient(circle at 64% 56%, #3f9b5a 0 17%, transparent 18%),
-    radial-gradient(circle at 30% 68%, #3f9b5a 0 12%, transparent 13%),
-    radial-gradient(circle at 70% 25%, #3f9b5a 0 9%, transparent 10%),
-    var(--earth);
-  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.45), 0 0 10px rgba(79, 163, 224, 0.35);
+    linear-gradient(var(--earth), var(--earth)) 50% 50% / 100% 1px no-repeat,
+    radial-gradient(ellipse 50% 98% at 50% 50%, transparent 64%, var(--earth) 66% 73%, transparent 75%);
+  box-shadow: none;
   transition: box-shadow 0.4s, width 0.4s, height 0.4s;
 }
 
@@ -2478,7 +2650,7 @@ details p {
 
 .earth-label {
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .earth-sublabel {
@@ -2522,23 +2694,28 @@ details p {
 }
 
 /* ==========================================================================
-   Dark liquid glass · space medical UI
-   One vocabulary for every control: dark translucent surfaces, hairline
-   borders, soft radii, a restrained cool glow. Gradients mark the main action
-   only. Status colors stay reserved for Nominal / Caution / Critical.
+   Instrument surfaces
+   One vocabulary for every control: opaque graphite panels, 1px rules,
+   small radii, no blur and no glow. The only light surface is the primary
+   action. Status colors stay reserved for Nominal / Caution / Critical.
    ========================================================================== */
 :root {
-  --glass: rgba(18, 26, 44, 0.55);
-  --glass-strong: rgba(14, 20, 36, 0.78);
-  --glass-hover: rgba(34, 48, 78, 0.62);
-  --glass-border: rgba(160, 196, 255, 0.16);
-  --glass-border-strong: rgba(170, 206, 255, 0.34);
-  --glass-highlight: inset 0 1px 0 rgba(210, 228, 255, 0.08);
-  --glow: 0 0 18px rgba(88, 150, 255, 0.16);
-  --cyan: #5cc8f0;
-  --violet: #8f7cf5;
-  --action: linear-gradient(135deg, #2f9fd8 0%, #3f7fe8 52%, #7d6cf0 100%);
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --glass: var(--surface);
+  --glass-strong: var(--surface);
+  --glass-hover: var(--surface-2);
+  --glass-border: var(--border);
+  --glass-border-strong: var(--border-strong);
+  --glass-highlight: none;
+  --glow: none;
+  --cyan: #a9c7d8;
+  --violet: #a9c7d8;
+  --action: #e9e3d5;
+  --voice: #1b1f23;
+  --voice-live: #e05a4e;
+  --action-glow: none;
+  --glass-solid: #111315;
+  --drawer-w: 292px;
+  --hud-inset: 16px;
 }
 
 /* ---------- Controls ---------- */
@@ -2559,27 +2736,28 @@ details p {
     transform 0.18s var(--ease);
 }
 
-/* Main action: the only place a gradient is used. */
+/* Primary action: the one light surface on the screen. No gradient. */
 .button,
 .tool-primary {
-  border: 1px solid rgba(190, 220, 255, 0.36);
-  border-radius: 10px;
+  border: 1px solid var(--action);
+  border-radius: var(--radius);
   background: var(--action);
-  color: #fff;
+  color: #0b0c0d;
   font-weight: 600;
-  box-shadow: var(--glass-highlight), 0 4px 18px rgba(63, 127, 232, 0.28);
+  box-shadow: none;
   filter: none;
 }
 
 .tool-primary {
-  border-radius: 999px;
+  border-radius: var(--radius);
 }
 
 .button:hover,
 .tool-primary:hover {
   filter: none;
-  border-color: rgba(214, 232, 255, 0.6);
-  box-shadow: var(--glass-highlight), 0 6px 24px rgba(92, 150, 255, 0.42);
+  border-color: #f7f1e3;
+  background: #f7f1e3;
+  box-shadow: none;
 }
 
 .button:active,
@@ -2589,25 +2767,25 @@ details p {
   transform: translateY(1px);
 }
 
-/* Secondary action: dark glass. */
+/* Secondary action: outline on graphite. */
 .button-quiet,
 .consult-button {
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
+  border: 1px solid var(--border-strong);
+  background: transparent;
   color: var(--text);
-  font-weight: 550;
-  box-shadow: var(--glass-highlight);
+  font-weight: 500;
+  box-shadow: none;
 }
 
 .button-quiet:hover,
 .consult-button:hover {
-  border-color: var(--glass-border-strong);
-  background: var(--glass-hover);
-  box-shadow: var(--glass-highlight), var(--glow);
+  border-color: var(--text-2);
+  background: var(--surface-2);
+  box-shadow: none;
 }
 
 .consult-button {
-  border-color: color-mix(in srgb, var(--earth) 60%, transparent);
+  border-color: color-mix(in srgb, var(--earth) 60%, var(--border-strong));
 }
 
 .button:disabled,
@@ -2617,29 +2795,29 @@ details p {
   box-shadow: none;
 }
 
-/* Controls: neutral glass. The ones that float over the 3D view also blur what is behind them. */
+/* Controls: same surface, one fixed radius. */
 .segmented,
 .main-nav {
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  background: var(--glass-strong);
-  box-shadow: var(--glass-highlight);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: none;
 }
 
 .segment,
 .nav-item {
-  border-radius: 9px;
+  border-radius: 3px;
 }
 
 .segment:hover,
 .nav-item:hover {
-  background: rgba(120, 160, 230, 0.1);
+  background: var(--surface-2);
 }
 
 .segment[aria-pressed='true'],
 .nav-item[aria-current='page'] {
-  background: linear-gradient(180deg, rgba(92, 150, 255, 0.26), rgba(92, 150, 255, 0.14));
-  box-shadow: inset 0 0 0 1px rgba(150, 196, 255, 0.34);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
   color: var(--text);
 }
 
@@ -2648,45 +2826,34 @@ details p {
 .twin-switch,
 #simulator,
 .res-chip {
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  box-shadow: var(--glass-highlight);
-}
-
-.tool-toggle,
-.systems-toggle,
-.twin-switch,
-#simulator,
-.symptom-form,
-.earth-badge,
-.viewport-tooltip {
-  -webkit-backdrop-filter: blur(14px) saturate(1.25);
-  backdrop-filter: blur(14px) saturate(1.25);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: none;
 }
 
 .tool-toggle:hover,
 .systems-toggle:hover,
 .res-chip:hover {
-  border-color: var(--glass-border-strong);
-  background: var(--glass-hover);
-  box-shadow: var(--glass-highlight), var(--glow);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  box-shadow: none;
 }
 
 .tool-toggle[aria-pressed='true'] {
-  border-color: color-mix(in srgb, var(--symptom) 70%, transparent);
-  background: color-mix(in srgb, var(--symptom) 20%, var(--glass-strong));
-  box-shadow: var(--glass-highlight), 0 0 18px color-mix(in srgb, var(--symptom) 24%, transparent);
+  border-color: var(--symptom);
+  background: color-mix(in srgb, var(--symptom) 10%, var(--surface));
+  box-shadow: none;
 }
 
 .res-chip[aria-pressed='true'] {
-  border-color: rgba(150, 196, 255, 0.5);
-  background: linear-gradient(180deg, rgba(92, 150, 255, 0.26), rgba(92, 150, 255, 0.12));
+  border-color: var(--accent);
+  background: var(--surface-3);
 }
 
 #simulator {
   border-style: solid;
-  border-radius: 14px;
-  background: var(--glass-strong);
+  border-radius: 6px;
+  background: var(--surface);
 }
 
 .icon-button,
@@ -2700,13 +2867,13 @@ details p {
 .icon-button:hover,
 .help-button:hover,
 .help-button[aria-expanded='true'] {
-  border-color: var(--glass-border-strong);
-  background: var(--glass-hover);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
 }
 
 .help-button {
-  border-color: var(--glass-border);
-  background: var(--glass);
+  border-color: var(--border);
+  background: transparent;
 }
 
 .res-input,
@@ -2715,19 +2882,16 @@ details p {
 .symptom-form textarea,
 #simulator select,
 .kpi-log input {
-  border: 1px solid var(--glass-border);
-  border-radius: 9px;
-  background: rgba(6, 10, 20, 0.6);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
 }
 
 .res-dialog,
 .symptom-form {
-  border: 1px solid var(--glass-border-strong);
-  background: linear-gradient(180deg, rgba(22, 32, 56, 0.94), rgba(11, 16, 30, 0.96));
-  box-shadow:
-    var(--glass-highlight),
-    0 0 0 1px rgba(2, 5, 12, 0.5),
-    0 24px 80px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 /* ---------- Body systems: a drawer, closed by default ---------- */
@@ -2743,11 +2907,10 @@ details p {
   z-index: 6;
   justify-self: start;
   width: min(292px, 86%);
-  border-right: 1px solid var(--glass-border);
-  background: var(--glass-strong);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  backdrop-filter: blur(18px) saturate(1.2);
-  box-shadow: 12px 0 40px rgba(0, 0, 0, 0.35);
+  border-right: 1px solid var(--border);
+  background: var(--surface-2);
+
+  box-shadow: 12px 0 32px rgba(0, 0, 0, 0.32);
   /* Slides with a transform: opening it never changes the size of the 3D canvas. */
   transform: translateX(-102%);
   visibility: hidden;
@@ -2781,11 +2944,11 @@ details p {
   align-self: flex-start;
   gap: 8px;
   min-height: 34px;
-  padding: 5px 12px 5px 10px;
-  border-radius: 999px;
+  padding: 5px 10px 5px 9px;
+  border-radius: var(--radius);
   color: var(--text-2);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   cursor: pointer;
   pointer-events: auto;
 }
@@ -2806,19 +2969,20 @@ details p {
 }
 
 .systems-toggle-count {
-  min-width: 19px;
-  padding: 0 6px;
-  border-radius: 999px;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 2px;
   background: var(--status, var(--warning));
   color: #14100a;
-  font-size: 11.5px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
   line-height: 1.5;
   text-align: center;
 }
 
 .systems-toggle-count[data-status='critical'] {
-  color: #fff;
+  color: #140a08;
 }
 
 /* ---------- Scanner caption ---------- */
@@ -2827,16 +2991,15 @@ details p {
   left: 50%;
   top: 46%;
   z-index: 3;
-  padding: 8px 18px;
-  border: 1px solid var(--glass-border-strong);
-  border-radius: 999px;
-  background: var(--glass-strong);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  padding: 7px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
   pointer-events: none;
@@ -2846,8 +3009,8 @@ details p {
 }
 
 .scan-caption.is-done {
-  border-color: color-mix(in srgb, var(--cyan) 70%, transparent);
-  box-shadow: 0 0 22px color-mix(in srgb, var(--cyan) 24%, transparent);
+  border-color: var(--accent);
+  box-shadow: none;
 }
 
 .scan-caption.is-leaving {
@@ -2868,18 +3031,17 @@ details p {
 }
 
 .kpi {
-  padding: 16px 16px 12px;
-  border: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-border);
+  padding: 14px 14px 12px;
+  border: 1px solid var(--border);
   border-left: 3px solid var(--status, var(--unknown));
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(26, 36, 60, 0.6), rgba(14, 20, 36, 0.6));
-  box-shadow: var(--glass-highlight);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: none;
   transition: border-color 0.18s var(--ease);
 }
 
 .kpi:hover {
-  border-color: var(--glass-border-strong);
+  border-color: var(--border-strong);
   border-left-color: var(--status, var(--unknown));
 }
 
@@ -2890,7 +3052,7 @@ details p {
 .kpi-system {
   color: var(--muted);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -2910,7 +3072,7 @@ details p {
 
 .kpi-value {
   font-size: 40px;
-  font-weight: 620;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
@@ -2930,8 +3092,8 @@ details p {
 .sparkline {
   height: 64px;
   margin-top: 0;
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(92, 150, 255, 0.05), transparent);
+  border-radius: var(--radius);
+  background: none;
 }
 
 .sparkline-line {
@@ -2949,14 +3111,14 @@ details p {
 }
 
 .sparkline-dot {
-  stroke: #d6e6ff;
+  stroke: var(--text);
   stroke-width: 7;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 
 .sparkline[data-empty] {
-  background: repeating-linear-gradient(90deg, transparent 0 6px, rgba(160, 196, 255, 0.07) 6px 7px);
+  background: repeating-linear-gradient(90deg, transparent 0 6px, rgba(236, 232, 223, 0.06) 6px 7px);
 }
 
 .kpi-chart-caption {
@@ -3001,12 +3163,10 @@ details p {
 
 /* ---------- "What should I do now?" after a report ---------- */
 .guide-dialog {
-  --tier: var(--cyan);
-  border-color: color-mix(in srgb, var(--tier) 55%, transparent);
-  box-shadow:
-    var(--glass-highlight),
-    0 0 46px color-mix(in srgb, var(--tier) 16%, transparent),
-    0 24px 80px rgba(0, 0, 0, 0.6);
+  --tier: var(--accent);
+  border-color: var(--border-strong);
+  border-left: 3px solid var(--tier);
+  box-shadow: var(--shadow);
 }
 
 .guide-dialog[data-tier='attention'] {
@@ -3015,17 +3175,18 @@ details p {
 
 .guide-dialog[data-tier='immediate'] {
   --tier: var(--critical);
-  background: linear-gradient(180deg, rgba(48, 20, 26, 0.96), rgba(20, 11, 16, 0.97));
+  background: var(--surface);
 }
 
 .guide-dialog .res-dialog-head {
-  border-bottom-color: color-mix(in srgb, var(--tier) 40%, transparent);
+  border-bottom-color: var(--border);
 }
 
 .guide-dialog .res-dialog-head h2 {
-  color: color-mix(in srgb, var(--tier) 70%, #fff);
-  font-size: 13px;
-  letter-spacing: 0.1em;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -3052,18 +3213,19 @@ details p {
 
 .guide-banner {
   display: flex;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  background: var(--glass);
-  font-size: 13px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 12px;
 }
 
 .guide-banner-title {
   color: var(--muted);
   font-size: 11.5px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -3084,9 +3246,11 @@ details p {
 }
 
 .guide-question {
-  font-size: 24px;
-  font-weight: 650;
-  line-height: 1.15;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: 0;
 }
 
 .guide-step h3 {
@@ -3095,7 +3259,7 @@ details p {
   gap: 9px;
   margin-bottom: 7px;
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .guide-number {
@@ -3104,10 +3268,11 @@ details p {
   flex: none;
   width: 22px;
   height: 22px;
-  border: 1px solid color-mix(in srgb, var(--tier) 70%, transparent);
+  border: 1px solid var(--border-strong);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--tier) 16%, transparent);
-  font-size: 12px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .guide-lines {
@@ -3136,22 +3301,25 @@ details p {
 
 .guide-source {
   flex: none;
-  padding: 1px 8px;
-  border: 1px solid var(--glass-border);
-  border-radius: 999px;
+  padding: 2px 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
   color: var(--text-2);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .guide-source[data-source='measured'] {
-  border-color: color-mix(in srgb, var(--cyan) 50%, transparent);
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 
 .guide-source[data-source='protocol'],
 .guide-source[data-source='triage'] {
-  border-color: rgba(150, 196, 255, 0.5);
+  border-color: var(--border-strong);
   color: var(--text);
 }
 
@@ -3184,7 +3352,7 @@ details p {
 .guide-context summary {
   color: var(--text-2);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .guide-context .guide-lines {
@@ -3251,8 +3419,6 @@ details p {
     transform: none;
     visibility: visible;
     box-shadow: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
     transition: none;
   }
   #systems.is-open {
@@ -3266,12 +3432,12 @@ details p {
   bottom: -18px;
   margin: 0 -18px -18px;
   padding: 12px 18px 16px;
-  border-top: 1px solid var(--glass-border);
-  background: linear-gradient(180deg, rgba(14, 20, 36, 0.86), rgba(11, 16, 30, 0.98));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .guide-dialog[data-tier='immediate'] .guide-actions {
-  background: linear-gradient(180deg, rgba(40, 17, 23, 0.9), rgba(20, 11, 16, 0.98));
+  background: var(--surface-2);
 }
 
 /* ==========================================================================
@@ -3283,24 +3449,23 @@ details p {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  min-height: 36px;
+  min-height: 34px;
   margin-right: auto;
-  padding: 6px 16px 6px 12px;
-  border: 1px solid rgba(190, 220, 255, 0.4);
-  border-radius: 999px;
+  padding: 5px 14px 5px 11px;
+  border: 1px solid var(--action);
+  border-radius: var(--radius);
   background: var(--action);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 650;
+  color: #0b0c0d;
+  font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--glass-highlight), 0 4px 22px rgba(92, 150, 255, 0.36);
-  transition:
-    box-shadow 0.18s var(--ease),
-    transform 0.18s var(--ease);
+  box-shadow: none;
+  transition: background-color 0.18s var(--ease);
 }
 
 .play-mission:hover {
-  box-shadow: var(--glass-highlight), 0 6px 30px rgba(110, 160, 255, 0.55);
+  background: #f7f1e3;
+  box-shadow: none;
 }
 
 .play-mission:active {
@@ -3308,7 +3473,7 @@ details p {
 }
 
 .play-mission-icon {
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .main-nav {
@@ -3338,14 +3503,11 @@ details p {
 .tour-caption {
   width: 100%;
   padding: 16px 26px 18px;
-  border: 1px solid var(--glass-border-strong);
-  border-radius: 18px;
-  background: rgba(8, 13, 26, 0.86);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  backdrop-filter: blur(18px) saturate(1.2);
-  box-shadow:
-    var(--glass-highlight),
-    0 18px 60px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+
+  box-shadow: var(--shadow);
   text-align: center;
   animation: tour-in 0.24s var(--ease);
   transition:
@@ -3367,11 +3529,11 @@ details p {
 }
 
 .tour-caption-title {
-  margin-bottom: 4px;
-  color: var(--cyan);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  margin-bottom: 5px;
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -3380,7 +3542,7 @@ details p {
 }
 
 .tour-caption[data-tone='ok'] .tour-caption-title {
-  color: #5fd35f;
+  color: var(--good);
 }
 
 .tour-caption-text {
@@ -3395,9 +3557,9 @@ details p {
   align-items: center;
   gap: 10px;
   padding: 5px 8px 5px 14px;
-  border: 1px solid var(--glass-border);
-  border-radius: 999px;
-  background: rgba(8, 13, 26, 0.8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
   pointer-events: auto;
 }
 
@@ -3411,18 +3573,18 @@ details p {
 
 .tour-marks li {
   width: 16px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(160, 196, 255, 0.18);
+  height: 3px;
+  border-radius: 1px;
+  background: var(--surface-3);
   transition: background-color 0.3s;
 }
 
 .tour-marks li[data-state='done'] {
-  background: rgba(120, 180, 255, 0.55);
+  background: var(--border-strong);
 }
 
 .tour-marks li[data-state='current'] {
-  background: var(--cyan);
+  background: var(--accent);
 }
 
 .tour-card-slot {
@@ -3437,12 +3599,11 @@ details p {
   align-items: center;
   gap: 14px;
   padding: 12px 22px;
-  border: 1px solid var(--glass-border-strong);
-  border-radius: 16px;
-  background: rgba(8, 13, 26, 0.84);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+
+  box-shadow: var(--shadow);
   animation: tour-in 0.24s var(--ease);
   white-space: nowrap;
 }
@@ -3461,8 +3622,8 @@ details p {
 }
 
 .tour-loop-step[data-active='true'] {
-  color: #fff;
-  text-shadow: 0 0 18px rgba(110, 180, 255, 0.7);
+  color: var(--text);
+  text-shadow: none;
 }
 
 .tour-delay {
@@ -3489,16 +3650,16 @@ details p {
 
 .tour-delay-side strong {
   font-size: 30px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.1;
 }
 
 /* The length of the bar is the wait: a sliver near Earth, the whole width from Mars. */
 .tour-delay-bar {
-  height: 5px;
+  height: 4px;
   margin: 4px 0 2px;
-  border-radius: 3px;
-  background: var(--cyan);
+  border-radius: 1px;
+  background: var(--accent);
   width: 6%;
 }
 
@@ -3531,16 +3692,16 @@ details p {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  background: rgba(3, 6, 14, 0.9);
+  background: var(--bg);
   color: var(--text-2);
   font-size: clamp(26px, 4vw, 54px);
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: 0.06em;
   animation: tour-veil 1.7s ease-in-out forwards;
 }
 
 .tour-transition strong {
-  color: #fff;
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -3550,9 +3711,7 @@ details p {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(3, 6, 14, 0.82);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: var(--bg);
   pointer-events: auto;
   animation: guide-fade 0.3s ease-out;
 }
@@ -3568,30 +3727,31 @@ details p {
 }
 
 .tour-eyebrow {
-  color: var(--cyan);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .tour-screen h2 {
-  font-size: clamp(24px, 2.4vw + 12px, 38px);
-  font-weight: 350;
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2.4vw + 12px, 40px);
+  font-weight: 600;
+  line-height: 1.18;
   text-wrap: balance;
 }
 
 .tour-ending h2 {
   font-size: clamp(44px, 6vw, 84px);
-  font-weight: 200;
-  letter-spacing: 0.34em;
-  margin-right: -0.34em;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  margin-right: -0.22em;
 }
 
 .tour-ending-line {
   font-size: clamp(19px, 1.2vw + 12px, 26px);
-  font-weight: 300;
+  font-weight: 400;
   text-wrap: balance;
 }
 
@@ -3603,10 +3763,11 @@ details p {
 .tour-loop-words {
   display: flex;
   gap: 22px;
-  color: var(--cyan);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.3em;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
 }
 
@@ -3680,10 +3841,10 @@ details p {
   flex-direction: column;
   gap: 2px;
   padding: 9px 12px;
-  border: 1px dashed rgba(200, 210, 230, 0.4);
-  border-left: 4px solid #aab4c8;
-  border-radius: 8px;
-  background: rgba(150, 165, 195, 0.1);
+  border: 1px dashed var(--border-strong);
+  border-left: 4px solid var(--unknown);
+  border-radius: var(--radius);
+  background: var(--surface-2);
   font-size: 13px;
 }
 
@@ -3702,7 +3863,7 @@ details p {
 
 .los-lead {
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .los-window,
@@ -3726,22 +3887,22 @@ details p {
   padding: 8px 12px;
   border: 1px solid color-mix(in srgb, var(--signal) 55%, transparent);
   border-left: 4px solid var(--signal);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--signal) 10%, transparent);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
 }
 
 .earth-link[data-link='loss-of-signal'] .earth-globe,
 .earth-link[data-link='reacquiring'] .earth-globe {
   filter: grayscale(1) brightness(0.55);
-  box-shadow: 0 0 0 2px rgba(200, 210, 230, 0.35);
+  box-shadow: 0 0 0 2px var(--border-strong);
 }
 
 .earth-link[data-link='loss-of-signal'] .earth-badge,
 .earth-link[data-link='reacquiring'] .earth-badge {
   border-style: dashed;
-  border-color: rgba(200, 210, 230, 0.45);
+  border-color: var(--border-strong);
 }
 
 .earth-link[data-link='loss-of-signal'] .earth-sublabel,
@@ -3769,7 +3930,7 @@ details p {
 
 .episode-head h3 {
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .episode-head p {
@@ -3785,9 +3946,9 @@ details p {
 
 .episode-section {
   padding: 12px 14px;
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
 .episode-section h4 {
@@ -3797,18 +3958,20 @@ details p {
   gap: 4px 9px;
   margin-bottom: 8px;
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .episode-letter {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
-  background: rgba(92, 150, 255, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(150, 196, 255, 0.4);
-  font-size: 13px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-2);
 }
 
 .episode-note {
@@ -3832,7 +3995,7 @@ details p {
 
 .episode-subhead {
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .episode-timeline {
@@ -3849,7 +4012,7 @@ details p {
   align-items: start;
   gap: 12px;
   padding: 7px 0 7px 18px;
-  border-left: 2px solid var(--glass-border);
+  border-left: 2px solid var(--border);
   font-size: 13.5px;
 }
 
@@ -3861,8 +4024,8 @@ details p {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 0 3px rgba(11, 16, 30, 0.96);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--surface);
 }
 
 .episode-timeline li[data-kind='symptom']::before {
@@ -3892,9 +4055,11 @@ details p {
 }
 
 .checkin-body h3 {
-  font-size: 24px;
+  font-family: var(--font-display);
+  font-size: 26px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.18;
+  letter-spacing: 0;
 }
 
 .checkin-lead {
@@ -3903,15 +4068,16 @@ details p {
 }
 
 .checkin-step {
-  color: var(--cyan);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .checkin-icon {
-  color: var(--cyan);
+  color: var(--accent);
 }
 
 .checkin-actions,
@@ -3935,10 +4101,10 @@ details p {
 
 .checkin-scan {
   position: relative;
-  height: 6px;
+  height: 4px;
   margin: 26px 0 6px;
-  border-radius: 3px;
-  background: rgba(160, 196, 255, 0.14);
+  border-radius: 1px;
+  background: var(--surface-3);
   overflow: hidden;
 }
 
@@ -3946,7 +4112,7 @@ details p {
 .checkin-scan span {
   position: absolute;
   inset: 0;
-  background: var(--action);
+  background: var(--accent);
   transform-origin: left;
   animation: checkin-sweep 1.2s var(--ease) forwards;
 }
@@ -3972,9 +4138,9 @@ details p {
   grid-template-columns: 1fr auto;
   gap: 0 12px;
   padding: 10px 12px;
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
 }
 
 .checkin-change-name {
@@ -3996,7 +4162,7 @@ details p {
   display: flex;
   flex-direction: column;
   padding-left: 11px;
-  border-left: 3px solid var(--glass-border-strong);
+  border-left: 3px solid var(--border-strong);
   font-size: 14px;
 }
 
@@ -4007,7 +4173,7 @@ details p {
 .checkin-plan-kind {
   color: var(--muted);
   font-size: 11.5px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -4074,73 +4240,63 @@ details p {
 }
 
 /* ==========================================================================
-   UX refresh: report form, voice dictation, key actions, HUD spacing and the
-   "What should I do now?" window. Same dark glass vocabulary as above:
-   gradients only on the main action of each place, everything else glass.
+   Report form, voice dictation, key actions, HUD spacing and the
+   "What should I do now?" window. Same instrument vocabulary: opaque panels,
+   one light action per place, no gradients, no blur.
    ========================================================================== */
 :root {
-  /* Cyan → blue → violet: the main action. */
-  --action: linear-gradient(135deg, #25b6e4 0%, #3f7fe8 50%, #8a6cf2 100%);
-  /* Blue → violet → pink: the voice. Related to the main action, not competing with it. */
-  --voice: linear-gradient(135deg, #2f9fe2 0%, #6f72ee 55%, #c46bdc 100%);
-  --voice-live: linear-gradient(135deg, #e0567f 0%, #b45ce8 100%);
-  --action-glow: 0 6px 22px rgba(70, 130, 245, 0.32);
-  /* A glass fill opaque enough to carry a gradient hairline around it. */
-  --glass-solid: rgba(14, 20, 36, 0.92);
+  --action: #e9e3d5;
+  --voice: #1b1f23;
+  --voice-live: #e05a4e;
+  --action-glow: none;
+  --glass-solid: #111315;
   --drawer-w: 292px;
   --hud-inset: 16px;
 }
 
-/* ---------- Buttons: pills everywhere ---------- */
+/* ---------- Buttons: fixed 4px radius, never pills ---------- */
 .button,
 .button-quiet {
-  border-radius: 999px;
+  border-radius: var(--radius);
 }
 
 .button:not(.button-quiet):hover,
 .tool-primary:hover {
-  box-shadow: var(--glass-highlight), 0 8px 28px rgba(92, 150, 255, 0.44);
+  box-shadow: none;
 }
 
-/* Key actions that are not the main one: glass with a gradient hairline. */
+/* Key actions that are not the main one: outline, one border. */
 .tool-toggle,
 .consult-button,
 .guide-button-earth {
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--glass-solid), var(--glass-solid)) padding-box,
-    var(--voice) border-box;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
 }
 
 .consult-button,
 .guide-button-earth {
-  background:
-    linear-gradient(var(--glass-solid), var(--glass-solid)) padding-box,
-    linear-gradient(135deg, #4fa3e0, #8a6cf2) border-box;
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--earth) 55%, var(--border-strong));
 }
 
 .tool-toggle:hover,
 .consult-button:hover,
 .guide-button-earth:hover {
-  background:
-    linear-gradient(rgba(30, 42, 70, 0.92), rgba(30, 42, 70, 0.92)) padding-box,
-    var(--voice) border-box;
-  box-shadow: var(--glass-highlight), 0 0 20px rgba(140, 110, 240, 0.25);
+  background: var(--surface-2);
+  box-shadow: none;
 }
 
 .tool-toggle[aria-pressed='true'] {
-  border-color: transparent;
-  background:
-    linear-gradient(135deg, rgba(111, 114, 238, 0.42), rgba(196, 107, 220, 0.42)) padding-box,
-    var(--voice) border-box;
-  box-shadow: var(--glass-highlight), 0 0 22px rgba(180, 110, 230, 0.32);
+  border-color: var(--symptom);
+  background: color-mix(in srgb, var(--symptom) 12%, var(--surface));
+  box-shadow: none;
 }
 
 .tool-toggle,
 .tool-primary {
-  min-height: 40px;
-  padding: 8px 18px 8px 14px;
-  font-size: 14px;
+  min-height: 36px;
+  padding: 6px 14px 6px 12px;
+  font-size: 13.5px;
   font-weight: 600;
 }
 
@@ -4166,12 +4322,11 @@ details p {
   grid-column: 2;
   grid-row: 1;
   justify-self: start;
-  padding: 7px 14px;
-  border: 1px solid var(--glass-border);
-  border-radius: 999px;
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+
 }
 
 /* Row 2: views and actions. Row 3: the hint. */
@@ -4191,12 +4346,13 @@ details p {
   margin: 0;
 }
 
-/* The scenario picker of the demo simulator: the light pastel pill it was designed as
-   (a later dark-glass rule for every select covered its background, hiding the text). */
+/* The scenario picker of the demo simulator. The pastel gradient never had a
+   job: it now matches every other select in the console. */
 #simulator #scenario {
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: linear-gradient(100deg, #bdfcf7 0%, #d9fff7 30%, #ffffff 52%, #efc8ff 75%, #d69cff 100%);
-  color: #131926;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
 }
 
 #hint {
@@ -4206,18 +4362,18 @@ details p {
 .systems-toggle {
   width: auto;
   height: auto;
-  min-height: 40px;
-  padding: 8px 16px 8px 14px;
-  gap: 10px;
+  min-height: 36px;
+  padding: 7px 14px 7px 12px;
+  gap: 9px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .systems-toggle[aria-expanded='true'] {
-  border-color: rgba(150, 196, 255, 0.5);
-  background: linear-gradient(180deg, rgba(92, 150, 255, 0.26), rgba(92, 150, 255, 0.12));
+  border-color: var(--border-strong);
+  background: var(--surface-3);
 }
 
 /* With the drawer open, the controls move beside it instead of hiding under it. */
@@ -4241,8 +4397,8 @@ details p {
   width: min(408px, calc(100% - 32px));
   max-height: calc(100% - 32px);
   padding: 18px 20px 0;
-  border-top: 1px solid var(--glass-border-strong);
-  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
   scrollbar-gutter: stable;
 }
 
@@ -4250,9 +4406,8 @@ details p {
   content: '';
   position: absolute;
   inset: 0 0 auto;
-  height: 3px;
-  border-radius: 20px 20px 0 0;
-  background: var(--voice);
+  height: 2px;
+  background: var(--symptom);
 }
 
 .symptom-form-head {
@@ -4282,7 +4437,7 @@ details p {
   padding: 0;
   color: var(--text);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .field-step {
@@ -4291,12 +4446,13 @@ details p {
   flex: none;
   width: 22px;
   height: 22px;
-  border: 1px solid rgba(150, 196, 255, 0.45);
+  border: 1px solid var(--border-strong);
   border-radius: 50%;
-  background: rgba(92, 150, 255, 0.16);
-  color: #d6e6ff;
-  font-size: 11.5px;
-  font-weight: 700;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
 }
 
 .field-hint {
@@ -4308,25 +4464,25 @@ details p {
 .symptom-form select {
   min-height: 42px;
   padding: 0 12px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   font-size: 14.5px;
 }
 
-/* Intensity: a big number, a word, and a thick track that fills to the thumb. */
+/* Intensity uses one severity ramp, not a decorative rainbow. */
 .symptom-field {
-  --level: #5cc8f0;
+  --level: #c9b07a;
 }
 
 .symptom-field[data-level='moderate'] {
-  --level: #9b8cff;
+  --level: #d99a45;
 }
 
 .symptom-field[data-level='severe'] {
-  --level: #d77ce0;
+  --level: #d4703f;
 }
 
 .symptom-field[data-level='very-severe'] {
-  --level: #ff7aa2;
+  --level: #e05a4e;
 }
 
 .symptom-intensity-readout {
@@ -4337,18 +4493,21 @@ details p {
 
 .symptom-form .symptom-intensity-value {
   font-size: 24px;
-  font-weight: 750;
+  font-weight: 700;
   line-height: 1;
 }
 
 .symptom-intensity-word {
-  padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--level) 55%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--level) 16%, transparent);
-  color: color-mix(in srgb, var(--level) 55%, #fff);
-  font-size: 12px;
-  font-weight: 650;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--level) 55%, var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .symptom-form input[type='range'] {
@@ -4361,29 +4520,25 @@ details p {
 }
 
 .symptom-form input[type='range']::-webkit-slider-runnable-track {
-  height: 10px;
-  border-radius: 999px;
-  background:
-    linear-gradient(90deg, transparent var(--fill), #1c2438 var(--fill)),
-    linear-gradient(90deg, #3cc6ef, #8a6cf2 55%, #ff7aa2);
+  height: 8px;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--level) var(--fill), var(--surface-3) var(--fill));
 }
 
 .symptom-form input[type='range']::-moz-range-track {
-  height: 10px;
-  border-radius: 999px;
-  background:
-    linear-gradient(90deg, transparent var(--fill), #1c2438 var(--fill)),
-    linear-gradient(90deg, #3cc6ef, #8a6cf2 55%, #ff7aa2);
+  height: 8px;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--level) var(--fill), var(--surface-3) var(--fill));
 }
 
 .symptom-form input[type='range']::-webkit-slider-thumb {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   margin-top: -7px;
-  border: 3px solid #fff;
+  border: 2px solid var(--text);
   border-radius: 50%;
   background: var(--level);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--level) 28%, transparent), 0 2px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -4391,10 +4546,10 @@ details p {
 .symptom-form input[type='range']::-moz-range-thumb {
   width: 18px;
   height: 18px;
-  border: 3px solid #fff;
+  border: 2px solid var(--text);
   border-radius: 50%;
   background: var(--level);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--level) 28%, transparent), 0 2px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
 }
 
 .symptom-form .symptom-scale {
@@ -4430,21 +4585,20 @@ details p {
   gap: 9px;
   min-height: 42px;
   padding: 8px 12px;
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
   color: var(--text);
   font-size: 13.5px;
   line-height: 1.25;
   transition:
     background-color 0.18s var(--ease),
-    border-color 0.18s var(--ease),
-    box-shadow 0.18s var(--ease);
+    border-color 0.18s var(--ease);
 }
 
 .symptom-form .choice:hover span {
-  border-color: var(--glass-border-strong);
-  background: var(--glass-hover);
+  border-color: var(--border-strong);
+  background: var(--surface-3);
 }
 
 /* The check circle is a span inside the chip: undo the chip styles the generic rule gives it. */
@@ -4456,21 +4610,21 @@ details p {
   height: 18px;
   min-height: 0;
   padding: 0;
-  border: 1.5px solid rgba(220, 230, 255, 0.4);
+  border: 1px solid var(--border-strong);
   border-radius: 50%;
   background: none;
   box-shadow: none;
 }
 
 .symptom-form .choice input:checked + span {
-  border-color: rgba(170, 150, 255, 0.75);
-  background: linear-gradient(135deg, rgba(60, 198, 239, 0.16), rgba(138, 108, 242, 0.3));
-  box-shadow: inset 0 0 0 1px rgba(170, 150, 255, 0.3), 0 4px 18px rgba(138, 108, 242, 0.22);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
+  box-shadow: none;
 }
 
 .symptom-form .choice input:checked + span .choice-check {
-  border-color: transparent;
-  background: var(--action);
+  border-color: var(--accent);
+  background: var(--accent);
 }
 
 .symptom-form .choice input:checked + span .choice-check::after {
@@ -4480,7 +4634,7 @@ details p {
   top: 2.5px;
   width: 4px;
   height: 8px;
-  border: solid #fff;
+  border: solid #0b0c0d;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -4489,15 +4643,15 @@ details p {
 .symptom-form textarea {
   min-height: 96px;
   padding: 11px 13px;
-  border-radius: 14px;
-  font-size: 14.5px;
+  border-radius: var(--radius);
+  font-size: 14px;
   line-height: 1.45;
 }
 
 .symptom-form textarea:focus,
 .symptom-form select:focus {
-  border-color: rgba(150, 196, 255, 0.6);
-  box-shadow: 0 0 0 3px rgba(92, 150, 255, 0.18);
+  border-color: var(--accent);
+  box-shadow: none;
   outline: none;
 }
 
@@ -4510,9 +4664,9 @@ details p {
 /* ---------- Voice dictation: a large, obvious action ---------- */
 .symptom-voice {
   padding: 14px;
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(111, 114, 238, 0.08), rgba(196, 107, 220, 0.04));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
 }
 
 .symptom-form .mic-button {
@@ -4520,24 +4674,25 @@ details p {
   align-items: center;
   gap: 14px;
   width: 100%;
-  min-height: 66px;
-  padding: 11px 18px 11px 11px;
-  border: 1px solid rgba(225, 232, 255, 0.32);
-  border-radius: 999px;
-  background: var(--voice);
-  color: #fff;
+  min-height: 60px;
+  padding: 10px 16px 10px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-3);
+  color: var(--text);
   text-align: left;
-  box-shadow: var(--glass-highlight), 0 8px 26px rgba(111, 114, 238, 0.36);
+  box-shadow: none;
   transition:
-    box-shadow 0.18s var(--ease),
-    transform 0.18s var(--ease),
-    filter 0.18s var(--ease);
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    transform 0.18s var(--ease);
 }
 
 .symptom-form .mic-button:hover:not(:disabled) {
-  border-color: rgba(235, 240, 255, 0.55);
-  box-shadow: var(--glass-highlight), 0 10px 32px rgba(140, 110, 240, 0.48);
-  filter: brightness(1.06);
+  border-color: var(--text-2);
+  background: #262b2f;
+  box-shadow: none;
+  filter: none;
 }
 
 .symptom-form .mic-button:active:not(:disabled) {
@@ -4549,41 +4704,42 @@ details p {
   display: grid;
   place-items: center;
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  background: transparent;
+  box-shadow: none;
 }
 
 .symptom-form .mic-orb .mic-icon {
   width: 12px;
   height: 18px;
   margin-bottom: 5px;
-  border: 2.5px solid #fff;
-  border-radius: 7px;
+  border: 2px solid currentColor;
+  border-radius: 6px;
   background: none;
   animation: none;
 }
 
 .symptom-form .mic-orb .mic-icon::after {
   bottom: -8px;
-  width: 2.5px;
+  width: 2px;
   height: 5px;
-  background: #fff;
+  background: currentColor;
 }
 
 /* The cradle under the microphone. */
 .mic-orb::after {
   content: '';
   position: absolute;
-  top: 19px;
+  top: 18px;
   left: 50%;
   width: 18px;
-  height: 10px;
-  border: 2.5px solid #fff;
+  height: 9px;
+  border: 2px solid currentColor;
   border-top: 0;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 9px 9px;
   transform: translateX(-50%);
 }
 
@@ -4595,44 +4751,49 @@ details p {
 }
 
 .mic-button-text {
-  font-size: 16.5px;
-  font-weight: 700;
+  font-size: 15.5px;
+  font-weight: 600;
   line-height: 1.2;
 }
 
 .mic-button-hint {
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--text-2);
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.3;
 }
 
 /* States: listening (live), loading/processing (working), ready, error. */
 .symptom-form .mic-button[data-state='listening'] {
-  border-color: rgba(255, 210, 225, 0.5);
-  background: var(--voice-live);
-  box-shadow: var(--glass-highlight), 0 8px 30px rgba(224, 86, 127, 0.4);
+  border-color: var(--critical);
+  background: color-mix(in srgb, var(--critical) 16%, var(--surface-3));
+  box-shadow: none;
 }
 
 .mic-button[data-state='listening'] .mic-orb {
-  background: rgba(255, 255, 255, 0.24);
-  animation: mic-ring 1.4s ease-out infinite;
+  border-color: var(--critical);
+  background: transparent;
+  animation: mic-ring 1.4s ease-out 3;
+}
+
+.mic-button[data-state='listening'] .mic-button-hint {
+  color: var(--text);
 }
 
 @keyframes mic-ring {
   0% {
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 0 0 rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--critical) 55%, transparent);
   }
   100% {
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 0 14px rgba(255, 255, 255, 0);
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--critical) 0%, transparent);
   }
 }
 
 .symptom-form .mic-button[data-state='loading'],
 .symptom-form .mic-button[data-state='processing'] {
-  border-color: var(--glass-border-strong);
-  background: var(--glass-solid);
-  box-shadow: var(--glass-highlight);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  box-shadow: none;
 }
 
 .mic-button[data-state='loading'] .mic-orb::before,
@@ -4640,9 +4801,9 @@ details p {
   content: '';
   position: absolute;
   inset: -3px;
-  border: 2.5px solid transparent;
-  border-top-color: #9fd4ff;
-  border-right-color: #b9a6ff;
+  border: 2px solid transparent;
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
   border-radius: 50%;
   animation: mic-spin 0.9s linear infinite;
 }
@@ -4654,15 +4815,15 @@ details p {
 }
 
 .symptom-form .mic-button[data-state='ready'] {
-  border-color: rgba(120, 200, 255, 0.5);
-  background: linear-gradient(135deg, rgba(47, 159, 226, 0.3), rgba(138, 108, 242, 0.3));
-  box-shadow: var(--glass-highlight), 0 6px 22px rgba(80, 140, 240, 0.25);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-3));
+  box-shadow: none;
 }
 
 .symptom-form .mic-button[data-state='error'] {
-  border-color: color-mix(in srgb, var(--warning) 70%, transparent);
-  background: var(--glass-solid);
-  box-shadow: var(--glass-highlight);
+  border-color: var(--warning);
+  background: var(--surface-2);
+  box-shadow: none;
 }
 
 .symptom-form .mic-button:disabled {
@@ -4675,8 +4836,8 @@ details p {
 }
 
 .symptom-voice .dictation-partial {
-  border-radius: 12px;
-  background: rgba(6, 10, 20, 0.5);
+  border-radius: var(--radius);
+  background: var(--surface-2);
   font-size: 14px;
 }
 
@@ -4690,8 +4851,8 @@ details p {
   gap: 10px;
   margin: 2px -20px 0;
   padding: 14px 20px 18px;
-  border-top: 1px solid var(--glass-border);
-  background: linear-gradient(180deg, rgba(14, 20, 36, 0.86), rgba(11, 16, 30, 0.99) 40%);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .symptom-save-note {
@@ -4743,23 +4904,23 @@ details p {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
 .guide-dialog .res-dialog-head h2::before {
   content: '';
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--tier);
-  box-shadow: 0 0 12px var(--tier);
+  box-shadow: none;
 }
 
 .guide-dialog .guide-banner {
   align-items: flex-start;
   padding: 12px 14px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(60, 198, 239, 0.08), rgba(138, 108, 242, 0.08));
+  border-radius: var(--radius);
+  background: var(--surface-2);
 }
 
 .guide-intro {
@@ -4785,10 +4946,77 @@ details p {
   gap: 12px;
 }
 
-/* What to do first, and when to get help, span the width; the two middle steps sit side by side. */
-.guide-step[data-step='immediate'],
+/* Step 1 (immediate action) is the protagonist: larger, with status color. */
+.guide-step[data-step='immediate'] {
+  padding: 16px 18px 14px 20px;
+  border-color: var(--tier);
+  background: color-mix(in srgb, var(--tier) 6%, var(--surface-2));
+}
+
+.guide-step[data-step='immediate'] h3 {
+  font-size: 17px;
+}
+
+.guide-step[data-step='immediate'] .guide-number {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  border-color: var(--tier);
+  color: var(--tier);
+}
+
+.guide-step[data-step='immediate'] .guide-lines li {
+  font-size: 14.5px;
+  padding: 9px 0;
+}
+
+/* Steps 2-4 are compact: smaller text, less padding. */
+.guide-step[data-step='self-check'],
+.guide-step[data-step='monitor'],
 .guide-step[data-step='escalate'] {
-  grid-column: 1 / -1;
+  padding: 10px 14px 8px 16px;
+}
+
+.guide-step[data-step='self-check'] h3,
+.guide-step[data-step='monitor'] h3,
+.guide-step[data-step='escalate'] h3 {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.guide-step[data-step='self-check'] .guide-number,
+.guide-step[data-step='monitor'] .guide-number,
+.guide-step[data-step='escalate'] .guide-number {
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+}
+
+.guide-step[data-step='self-check'] .guide-step-hint,
+.guide-step[data-step='monitor'] .guide-step-hint,
+.guide-step[data-step='escalate'] .guide-step-hint {
+  font-size: 9.5px;
+}
+
+.guide-step[data-step='self-check'] .guide-lines li,
+.guide-step[data-step='monitor'] .guide-lines li,
+.guide-step[data-step='escalate'] .guide-lines li {
+  font-size: 13px;
+  padding: 6px 0;
+}
+
+/* Source labels: small, quiet, not competing with the text. */
+.guide-dialog .guide-source {
+  padding: 1px 5px;
+  font-size: 9.5px;
+  font-weight: 400;
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.guide-dialog .guide-source::before {
+  width: 3px;
+  height: 3px;
 }
 
 .guide-step {
@@ -4796,10 +5024,10 @@ details p {
   position: relative;
   overflow: hidden;
   padding: 14px 16px 12px 18px;
-  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
-  border-radius: 16px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, rgba(18, 26, 44, 0.7)), rgba(12, 18, 32, 0.55));
-  box-shadow: var(--glass-highlight);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  box-shadow: none;
 }
 
 .guide-step::before {
@@ -4807,19 +5035,13 @@ details p {
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: var(--accent);
+  background: var(--tier);
 }
 
-.guide-step[data-step='self-check'] {
-  --accent: #5cc8f0;
-}
-
-.guide-step[data-step='monitor'] {
-  --accent: #9b8cff;
-}
-
+.guide-step[data-step='self-check'],
+.guide-step[data-step='monitor'],
 .guide-step[data-step='escalate'] {
-  --accent: #ef7fb5;
+  --accent: var(--tier);
 }
 
 .guide-step-head {
@@ -4836,21 +5058,21 @@ details p {
 }
 
 .guide-dialog .guide-number {
-  width: 26px;
-  height: 26px;
-  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  color: #fff;
-  font-size: 12.5px;
-  font-weight: 700;
+  width: 24px;
+  height: 24px;
+  border-color: var(--border-strong);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .guide-step-hint {
   margin-left: auto;
-  color: color-mix(in srgb, var(--accent) 65%, #fff);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -4866,7 +5088,7 @@ details p {
 }
 
 .guide-step .guide-lines li + li {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border);
 }
 
 .guide-step .guide-none,
@@ -4877,50 +5099,42 @@ details p {
 .guide-step .guide-surgeon {
   margin-top: 6px;
   padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(79, 163, 224, 0.1);
+  border-radius: var(--radius);
+  background: var(--surface-3);
 }
 
-/* Where each line comes from: a tag with its own color and a dot. */
+/* Where each line comes from: a word tag, not a color code. */
 .guide-dialog .guide-source {
-  --src: #9aa3b5;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px 3px 8px;
-  border: 1px solid color-mix(in srgb, var(--src) 50%, transparent);
-  background: color-mix(in srgb, var(--src) 14%, transparent);
-  color: color-mix(in srgb, var(--src) 55%, #fff);
-  font-size: 11.5px;
-  font-weight: 650;
+  padding: 2px 7px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 10.5px;
+  font-weight: 500;
 }
 
 .guide-dialog .guide-source::before {
   content: '';
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: var(--src);
+  background: var(--muted);
 }
 
-.guide-dialog .guide-source[data-source='measured'] {
-  --src: #4fd1c5;
+.guide-dialog .guide-source[data-source='measured']::before,
+.guide-dialog .guide-source[data-source='self-check']::before {
+  background: var(--accent);
 }
 
-.guide-dialog .guide-source[data-source='protocol'] {
-  --src: #a48bff;
+.guide-dialog .guide-source[data-source='triage']::before {
+  background: var(--tier);
 }
 
-.guide-dialog .guide-source[data-source='self-check'] {
-  --src: #5cc8f0;
-}
-
-.guide-dialog .guide-source[data-source='triage'] {
-  --src: var(--tier);
-}
-
-.guide-dialog .guide-source[data-source='reported'] {
-  --src: #ef7fb5;
+.guide-dialog .guide-source[data-source='reported']::before {
+  background: var(--symptom);
 }
 
 .guide-dialog .guide-source[data-source='context'],
@@ -4931,9 +5145,9 @@ details p {
 
 .guide-dialog .guide-context {
   padding: 12px 14px;
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
-  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
 }
 
 /* Actions: Close apart on the left; on the right, the main action first and in color. */
@@ -5005,12 +5219,11 @@ details p {
 .guide-icon-earth {
   width: 16px;
   height: 16px;
+  border: 1px solid var(--earth);
   border-radius: 50%;
   background:
-    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.55), transparent 40%),
-    radial-gradient(circle at 62% 58%, #3f9b5a 0 18%, transparent 19%),
-    radial-gradient(circle at 30% 70%, #3f9b5a 0 12%, transparent 13%),
-    var(--earth);
+    linear-gradient(var(--earth), var(--earth)) 50% 50% / 100% 1px no-repeat,
+    radial-gradient(ellipse 50% 96% at 50% 50%, transparent 64%, var(--earth) 66% 73%, transparent 75%);
 }
 
 @media (max-width: 760px) {
@@ -5060,12 +5273,12 @@ details p {
 
 /* Nothing shows through the action bar while the guidance scrolls under it. */
 .guide-dialog .guide-actions {
-  background: linear-gradient(180deg, rgba(14, 20, 36, 0.97), rgba(11, 16, 30, 0.99));
-  box-shadow: 0 -12px 24px rgba(5, 8, 16, 0.55);
+  background: var(--surface);
+  box-shadow: none;
 }
 
 .guide-dialog[data-tier='immediate'] .guide-actions {
-  background: linear-gradient(180deg, rgba(40, 17, 23, 0.97), rgba(20, 11, 16, 0.99));
+  background: var(--surface);
 }
 
 /* ==========================================================================
@@ -5074,22 +5287,24 @@ details p {
 
 /* Demo controls stay quiet: they are not actions of the health console. */
 #simulator .button-quiet {
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  background: var(--glass);
-  color: var(--text);
-  font-weight: 550;
-  box-shadow: var(--glass-highlight);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 500;
+  box-shadow: none;
 }
 
 #simulator .button-quiet:hover {
-  border-color: var(--glass-border-strong);
-  background: var(--glass-hover);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 #simulator .button-quiet[aria-pressed='true'] {
-  border-color: rgba(200, 210, 230, 0.55);
-  background: rgba(150, 165, 195, 0.18);
+  border-color: var(--text-2);
+  background: var(--surface-3);
+  color: var(--text);
 }
 
 /* The guidance window always ends on its last line, clear of the action bar. */

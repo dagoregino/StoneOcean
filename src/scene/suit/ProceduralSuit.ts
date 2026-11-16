@@ -28,13 +28,13 @@ export class ProceduralSuit implements AstronautSuit {
   private readonly pleat = this.material({ color: 0xdcdfe4, roughness: 0.95, metalness: 0, emissive: 0xffffff, emissiveIntensity: 0.06 });
   private readonly shell = this.material({ color: 0xf6f7f9, roughness: 0.55, metalness: 0.05, emissive: 0xffffff, emissiveIntensity: 0.1 });
   private readonly metal = this.material({ color: 0x9aa3b0, roughness: 0.42, metalness: 0.55 });
-  private readonly blue = this.material({ color: 0x2f6fd0, roughness: 0.6, metalness: 0.1 });
+  private readonly blue = this.material({ color: 0x3d6b8a, roughness: 0.6, metalness: 0.1 });
   private readonly dark = this.material({ color: 0x353b47, roughness: 0.85, metalness: 0.05 });
   private readonly visor = this.track(
-    new THREE.MeshPhysicalMaterial({ color: 0x0a1630, roughness: 0.1, metalness: 0.4, clearcoat: 1, clearcoatRoughness: 0.04, emissive: 0x0c2a5e, emissiveIntensity: 0.3 }),
+    new THREE.MeshPhysicalMaterial({ color: 0x101820, roughness: 0.1, metalness: 0.4, clearcoat: 1, clearcoatRoughness: 0.04, emissive: 0x16262f, emissiveIntensity: 0.3 }),
   );
-  private readonly glow = this.material({ color: 0x8cc4ff, roughness: 0.4, metalness: 0, emissive: 0x4aa3ff, emissiveIntensity: 1.8 });
-  private readonly lamp = this.material({ color: 0x898781, roughness: 0.4, metalness: 0 });
+  private readonly glow = this.material({ color: 0xa9c7d8, roughness: 0.4, metalness: 0, emissive: 0x7f9db0, emissiveIntensity: 1.4 });
+  private readonly lamp = this.material({ color: 0x8d897f, roughness: 0.4, metalness: 0 });
   private readonly fade: SuitFade;
 
   constructor() {

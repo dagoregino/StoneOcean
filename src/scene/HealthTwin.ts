@@ -70,7 +70,7 @@ export class HealthTwin {
     '(prefers-reduced-motion: reduce)',
   ).matches;
 
-  private readonly statusColor = new THREE.Color(0x898781);
+  private readonly statusColor = new THREE.Color(0x8d897f);
 
   private suit: AstronautSuit | null = null;
   private body: BodyModel | null = null;

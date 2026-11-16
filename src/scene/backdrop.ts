@@ -16,13 +16,13 @@ export function createBackdrop(): { object: THREE.Group; update(elapsed: number)
   group.add(
     new THREE.Points(
       starGeometry,
-      new THREE.PointsMaterial({ color: 0xa9bcff, size: 1.3, sizeAttenuation: false, transparent: true, opacity: 0.55 }),
+      new THREE.PointsMaterial({ color: 0xb9b4a9, size: 1.3, sizeAttenuation: false, transparent: true, opacity: 0.5 }),
     ),
   );
 
   const padMaterial = (opacity: number): THREE.MeshBasicMaterial =>
     new THREE.MeshBasicMaterial({
-      color: 0x3987e5,
+      color: 0x8fb3c7,
       transparent: true,
       opacity,
       blending: THREE.AdditiveBlending,

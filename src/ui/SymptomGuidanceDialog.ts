@@ -19,9 +19,9 @@ type StepKind = 'immediate' | 'self-check' | 'monitor' | 'escalate';
 
 const STEP_HINT: Record<StepKind, string> = {
   immediate: 'Do this first',
-  'self-check': 'Measure and log it',
-  monitor: 'Keep an eye on',
-  escalate: 'Get help if',
+  'self-check': 'Measure',
+  monitor: 'Monitor',
+  escalate: 'Escalate if',
 };
 
 /** One of the four steps, as a card: number, title, a short hint, then its lines. */

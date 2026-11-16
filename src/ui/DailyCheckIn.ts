@@ -40,7 +40,12 @@ export class DailyCheckIn {
     const actions = (...buttons: HTMLElement[]): HTMLElement => h('div', { class: 'checkin-actions' }, ...buttons);
     const button = (label: string, onclick: () => void, primary = false): HTMLElement => h('button', { class: primary ? 'button' : 'button button-quiet', type: 'button', onclick }, label);
 
-    const greeting = (): void => show(h('h3', null, 'Good morning'), h('p', { class: 'checkin-lead' }, 'Let’s check what changed since yesterday.'), actions(button('Not now', () => this.dialog?.close()), button('Start', compare, true)));
+    const greeting = (): void =>
+      show(
+        h('h3', null, 'Yesterday, in one pass'),
+        h('p', { class: 'checkin-lead' }, 'Three questions and a plan for today. First, what changed since yesterday.'),
+        actions(button('Not now', () => this.dialog?.close()), button('Start', compare, true)),
+      );
 
     const compare = (): void => {
       // The scanner runs once: on the twin if the astronaut is on show, and as a single sweep here.

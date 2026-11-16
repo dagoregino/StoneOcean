@@ -35,7 +35,7 @@ const stepLabel = (step: number, text: string, forId: string | null, extra?: HTM
 export class SymptomReporter {
   private readonly toggle: HTMLButtonElement;
   private readonly form: HTMLFormElement;
-  private readonly system = h('select', { id: 'symptom-system', name: 'system' });
+  private readonly system = h('select', { id: 'symptom-system', name: 'system', onchange: () => this.suggestions.update(this.system.value || null) });
   private readonly systemField: HTMLElement;
   private readonly intensity: HTMLInputElement;
   private readonly intensityValue = h('output', { class: 'symptom-intensity-value', for: 'symptom-intensity' });
@@ -196,6 +196,7 @@ export class SymptomReporter {
     }
     this.system.replaceChildren(...draft.systems.map((id) => h('option', { value: id }, SYSTEMS[id].name)));
     this.system.disabled = draft.systems.length < 2;
+    this.suggestions.update(this.system.value || null);
     this.showIntensity();
     this.form.hidden = false;
     if (firstSpot) this.intensity.focus({ preventScroll: true });
@@ -214,7 +215,6 @@ export class SymptomReporter {
   }
 
   private onNotesChanged(): void {
-    this.suggestions.update(this.notes.value);
     this.showNotesCount();
   }
 

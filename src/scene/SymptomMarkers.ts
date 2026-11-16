@@ -12,8 +12,8 @@ export interface SymptomMarkerSpec {
 }
 
 /** Not a status color: status colors are reserved for the health status of a body system. */
-const REPORTED = 0xb48cff;
-const DRAFT = 0xffffff;
+const REPORTED = 0xc98e9e;
+const DRAFT = 0xece8df;
 const PULSE_SECONDS = 2.4;
 
 interface Marker {

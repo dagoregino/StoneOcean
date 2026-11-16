@@ -20,10 +20,10 @@ export const STATUS_LABEL: Record<HealthStatus, string> = {
  * so status never depends on color alone.
  */
 export const STATUS_COLOR: Record<HealthStatus, string> = {
-  unknown: '#898781',
-  nominal: '#0ca30c',
-  caution: '#fab219',
-  critical: '#d03b3b',
+  unknown: '#8d897f',
+  nominal: '#57b978',
+  caution: '#d9a13c',
+  critical: '#e05a4e',
 };
 
 export const STATUS_GLYPH: Record<HealthStatus, string> = {

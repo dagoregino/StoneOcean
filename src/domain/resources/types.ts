@@ -10,15 +10,15 @@ export const RESOURCE_CATEGORIES = ['pharmaceutical', 'device', 'consumable', 'e
 export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number];
 
 export const CATEGORY_LABEL: Record<ResourceCategory, string> = {
-  pharmaceutical: 'Pharmaceutical supplies',
-  device: 'Medical devices',
-  consumable: 'Medical consumables',
-  emergency: 'Emergency equipment',
+  pharmaceutical: 'Medications',
+  device: 'Devices',
+  consumable: 'Supplies',
+  emergency: 'Emergency kit',
 };
 export const CATEGORY_SHORT: Record<ResourceCategory, string> = {
   pharmaceutical: 'Medication',
   device: 'Device',
-  consumable: 'Consumable',
+  consumable: 'Supplies',
   emergency: 'Emergency',
 };
 export const CATEGORY_PREFIX: Record<ResourceCategory, string> = { pharmaceutical: 'MED', device: 'DEV', consumable: 'CON', emergency: 'EMR' };
@@ -139,9 +139,9 @@ export interface MovementInput {
 export const TRAINING_LEVELS = ['awareness', 'operator', 'advanced'] as const;
 export type TrainingLevel = (typeof TRAINING_LEVELS)[number];
 export const TRAINING_LABEL: Record<TrainingLevel, string> = {
-  awareness: 'Awareness: can assist',
-  operator: 'Operator: can perform',
-  advanced: 'Advanced: can lead and teach',
+  awareness: 'Can assist',
+  operator: 'Can perform',
+  advanced: 'Can lead',
 };
 export const TRAINING_RANK: Record<TrainingLevel, number> = { awareness: 1, operator: 2, advanced: 3 };
 

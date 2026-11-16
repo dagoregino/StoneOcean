@@ -5,9 +5,9 @@ const SWITCH_VIEWS: readonly TwinView[] = ['astronaut', 'anatomy'];
 import { h, setText } from './dom';
 
 const HINT: Record<TwinView, string> = {
-  astronaut: 'Drag to rotate · scroll to zoom · click the astronaut to scan and open the anatomy',
-  scan: 'Drag to rotate · scroll to zoom · click a body system to look closer',
-  anatomy: 'Drag to rotate · scroll to zoom · click a body system, click again to go deeper',
+  astronaut: 'Click the astronaut to scan and open the anatomy',
+  scan: 'Click a body system to look closer',
+  anatomy: 'Click again to go deeper',
 };
 const VIEW_TITLE: Record<TwinView, string> = {
   astronaut: 'Back to the astronaut',

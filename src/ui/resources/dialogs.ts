@@ -28,7 +28,7 @@ import {
   type TrainingLevel,
 } from '../../domain/resources/types';
 import { h } from '../dom';
-import { confirmDialog, download, field, formatDate, formatDateTime, levelBadge, openDialog, qrCode, selectInput, showErrors, textInput, toast, type Field } from './kit';
+import { confirmDialog, download, field, formatDate, formatDateTime, levelBadge, openDialog, selectInput, showErrors, textInput, toast, type Field } from './kit';
 
 const TYPE_LABELS = new Map(knownItemTypes().map((t) => [t.typeCode, t.label]));
 /** A kind of item in words: the protocol's own name for it when it has one. */
@@ -49,7 +49,7 @@ export function openResourceForm(store: ResourceStore, existing?: Resource, pres
   const name = field('Name', textInput({ value: value('name'), maxLength: 80, required: true }));
   const typeList = h('datalist', { id: 'res-type-list' }, ...knownItemTypes().map((t) => h('option', { value: t.label })));
   const type = field('Kind of item', textInput({ value: existing ? typeLabel(existing.typeCode) : '', list: 'res-type-list', required: true }), {
-    hint: 'Protocols look for resources by kind. Pick one from the list when it fits.',
+    hint: 'Treatments look for supplies by kind. Pick one from the list when it fits.',
   });
   const id = field('Identifier', textInput({ value: value('id'), placeholder: 'Assigned automatically', disabled: editing }), { optional: !editing, hint: editing ? undefined : 'Leave empty to get the next free one. It is also the QR code.' });
   const quantity = field(editing ? 'On board' : 'Quantity on board', textInput({ type: 'number', min: '0', step: '1', value: existing ? value('quantity') : '', disabled: editing, required: true }), {
@@ -260,7 +260,7 @@ export function openResourceDetail(store: ResourceStore, user: string, resourceI
           levelBadge(condition.level, condition.label),
           findings.length > 0 ? h('ul', { class: 'res-findings' }, ...findings.map((f) => h('li', { dataset: { level: f.level } }, f.message))) : null,
         ),
-        h('div', { class: 'res-detail-qr' }, qrCode(resource.id), h('p', null, 'Scan to open this record')),
+        null,
       ),
       h(
         'dl',
@@ -293,7 +293,7 @@ export function openResourceDetail(store: ResourceStore, user: string, resourceI
             type: 'button',
             onclick: () =>
               resource.active
-                ? confirmDialog(`Deactivate ${resource.name}?`, 'It will no longer count for protocols or alerts. The record and its full history are kept, and it can be reactivated.', 'Deactivate', async () => {
+                ? confirmDialog(`Deactivate ${resource.name}?`, 'It will no longer count for treatments or alerts. The record and its full history are kept, and it can be reactivated.', 'Deactivate', async () => {
                     await store.setActive(resource.id, false);
                     dialog.close();
                     toast(`${resource.name} deactivated. Its history is kept.`);
@@ -489,7 +489,7 @@ export function openCrewForm(store: ResourceStore, existing?: CrewMember): void 
     const level = selectInput(TRAINING_LEVELS.map((l) => [l, TRAINING_LABEL[l]] as const), cert?.level ?? 'operator');
     level.setAttribute('aria-label', 'Training level');
     const certified = textInput({ type: 'date', value: cert?.certifiedOn ?? '', 'aria-label': 'Certified on' });
-    const expires = textInput({ type: 'date', value: cert?.expiresOn ?? '', 'aria-label': 'Certification expires on (optional)' });
+    const expires = textInput({ type: 'date', value: cert?.expiresOn ?? '', 'aria-label': 'Training expires on (optional)' });
     const error = h('p', { class: 'res-field-error', role: 'alert' });
     const entry = { read: (): Certification => ({ procedureCode: procedure.value, level: level.value as TrainingLevel, certifiedOn: certified.value, expiresOn: expires.value || undefined }), error };
     const row = h(

@@ -60,9 +60,9 @@ export function createAstronaut(sun: THREE.Vector3): Astronaut {
     disposables.push(m);
     return m;
   };
-  const suit = material(0x2a3b62, 0xb4d2ff, 0.08);
-  const pack = material(0x0f1930, 0x7fb0f5, 0.03);
-  const visor = material(0x081a3c, 0x8fd0ff, 1.0);
+  const suit = material(0x2a2e32, 0xdcd6c9, 0.08);
+  const pack = material(0x181b1e, 0x8fb3c7, 0.03);
+  const visor = material(0x0a0d10, 0xa9c7d8, 1.0);
 
   const figure = new THREE.Group();
   const add = (geometry: THREE.BufferGeometry, mat: THREE.Material, position: [number, number, number], scale: [number, number, number] = [1, 1, 1]): THREE.Mesh => {

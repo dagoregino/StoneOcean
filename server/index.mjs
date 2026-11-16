@@ -111,7 +111,7 @@ const server = createHttpServer(async (request, response) => {
 });
 
 persist();
-server.listen(port, () => {
+server.listen(port, '127.0.0.1', () => {
   console.log(`Crew health API on http://localhost:${port}  (crew member: ${CREW_ID}; database: ${db ? dbFile : 'none, run npm run db:build'})`);
   console.log('Try: GET /rules   GET /evidence?rule=R-CO2   GET /state/crew-1   GET /radiation/now   GET /alerts   GET /verify');
 });

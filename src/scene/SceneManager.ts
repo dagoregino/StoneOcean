@@ -41,12 +41,12 @@ export class SceneManager {
     this.renderer.domElement.classList.add('viewport-canvas');
     container.appendChild(this.renderer.domElement);
 
-    this.scene.background = new THREE.Color('#05070d');
+    this.scene.background = new THREE.Color('#0b0c0d');
     // Kept moderate on purpose: brighter lights wash the status colors toward white.
-    this.scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x0a0f1e, 0.6));
+    this.scene.add(new THREE.HemisphereLight(0xece8df, 0x111315, 0.6));
     const key = new THREE.DirectionalLight(0xffffff, 1.0);
     key.position.set(1.6, 2.6, 2.6);
-    const rim = new THREE.DirectionalLight(0xdfe6ff, 0.6);
+    const rim = new THREE.DirectionalLight(0xdcd6c9, 0.55);
     rim.position.set(-2, 1.4, -2.2);
     this.scene.add(key, rim);
 
