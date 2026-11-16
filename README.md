@@ -22,6 +22,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![System Selection & 3D Organ Highlighting](docs/screenshots/05-system-selection-eyes.jpg)
 *5. Targeted system inspection: selecting "Eyes & balance" isolates the sensory organs in 3D and visualizes relevant SANS indicators and balance metrics.*
 
+![Critical Alert & Earth-Independent Medical Triage (EIMO)](docs/screenshots/06-critical-alert-triage-eimo.jpg)
+*6. Critical alert & Earth-Independent Medical Operations (EIMO): deep-space communication latency triggers autonomous onboard action protocols while affected cardiovascular systems illuminate in red in 3D.*
+
 
 ## What it does
 
