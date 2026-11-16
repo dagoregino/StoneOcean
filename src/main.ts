@@ -108,7 +108,7 @@ function bootstrap(profile: CrewProfile): void {
 
   const tourIcon = h('span', { class: 'tour-help-icon', 'aria-hidden': 'true' });
   tourIcon.innerHTML =
-    '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 1.2l1.7 5.1 5.1 1.7-5.1 1.7L8 14.8l-1.7-5.1L1.2 8l5.1-1.7z"/></svg>';
+    '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>';
 
   const tourButton = h(
     'button',
