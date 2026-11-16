@@ -120,7 +120,7 @@ class IntroExperience {
 
   // ---------- Chapter 1: the film ----------
 
-  /** About five and a half seconds: leave the Earth, meet the astronaut, read the three lines, land on the name. */
+  /** About ten seconds: leave the Earth, meet the astronaut, read the three lines, land on the name. */
   private playFilm(): void {
     const [first, second, third] = this.lines.map((line) => Array.from(line.children));
     const film = gsap.timeline({ defaults: { ease: 'power2.out' } });
@@ -146,25 +146,25 @@ class IntroExperience {
       const s = this.scene.state;
       const { distance, azimuth, elevation, earthY, ...astronaut } = SCENE.orbit;
       // One pull-back carries the whole film.
-      film.to(s, { distance, azimuth, elevation, duration: 4.5, ease: 'sine.inOut' }, 0);
-      film.to(s, { ...astronaut, duration: 3.4, ease: 'power2.out' }, 1.6);
-      film.to(s, { earthY, duration: 2.0, ease: 'sine.inOut' }, 2.6);
+      film.to(s, { distance, azimuth, elevation, duration: 9.5, ease: 'sine.inOut' }, 0);
+      film.to(s, { ...astronaut, duration: 6.5, ease: 'power2.out' }, 2.8);
+      film.to(s, { earthY, duration: 4.5, ease: 'sine.inOut' }, 4.5);
     }
 
     // The first two lines sit low, like subtitles; the block rises once the name needs the room below.
     const stage = this.lines[0].parentElement!;
     film.set(stage, { y: () => this.brand.offsetHeight + this.startButton.offsetHeight * 0.6 }, 0);
-    film.set(stage, { y: 0 }, 3.9);
-    reveal(first, 0.5);
-    dismiss(this.lines[0], 2.1);
-    reveal(second, 2.4);
-    dismiss(this.lines[1], 3.6);
-    reveal(third, 4.0);
+    film.set(stage, { y: 0 }, 8.1);
+    reveal(first, 0.8);
+    dismiss(this.lines[0], 3.8);
+    reveal(second, 4.4);
+    dismiss(this.lines[1], 7.5);
+    reveal(third, 8.3);
     const [title, subtitle] = Array.from(this.brand.children);
     // The name settles into place: wide letters drawing together.
-    film.fromTo(title, { autoAlpha: 0, letterSpacing: '0.75em' }, { autoAlpha: 1, letterSpacing: '0.26em', duration: 1.0 }, 4.4);
-    film.fromTo(subtitle, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 4.9);
-    film.fromTo(this.startButton, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.4 }, 5.1);
+    film.fromTo(title, { autoAlpha: 0, letterSpacing: '0.75em' }, { autoAlpha: 1, letterSpacing: '0.26em', duration: 1.2 }, 9.2);
+    film.fromTo(subtitle, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6 }, 10.0);
+    film.fromTo(this.startButton, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 10.5);
   }
 
   /** Reduced motion: the whole message at once, on a still frame of the final shot. */
