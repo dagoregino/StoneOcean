@@ -34,6 +34,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Spatial Symptom Pinning & Guided Mission Tour](docs/screenshots/09-symptom-pinning-spatial.jpg)
 *9. Spatial symptom reporting & guided mission tour: pinning subjective discomfort directly on the 3D anatomy with real-time station-to-ground telemetry triage.*
 
+![Medical Resources & Crew Capabilities](docs/screenshots/10-medical-resources-crew-capabilities.png)
+*10. Resource Intelligence & crew capability matching: verifying in-flight medical inventory and certified crew availability (e.g. retinal OCT examination for SANS) before executing protocols.*
+
 
 ## What it does
 
