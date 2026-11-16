@@ -486,6 +486,12 @@ Other references for the simulator and reference ranges:
   nodes and inner ears are approximations added by this project.
 - Frame rate on low-end graphics has not been measured.
 
+## Design Consideration: Mental & Behavioral Health Scope
+
+We intentionally chose not to delve deeply into automated psychological diagnostics or psychiatric interventions in this prototype. Mental health in long-duration spaceflight is an exceptionally sensitive domain; automated algorithmic classifications in extreme, isolated environments risk generating misleading false positives that could needlessly elevate crew anxiety or mislabel normal, situational fluctuations.
+
+In HELIOS, behavioral tracking is purposefully kept conservative: daily self-reported mood ratings and sleep metrics are evaluated only against the astronaut's own 14-day individual baseline (avoiding rigid or arbitrary terrestrial labels). Expanding this into a comprehensive, clinically validated behavioral health decision-support module remains an important direction for future development in collaboration with flight surgeons and behavioral specialists.
+
 ## Use of AI tools
 
 The source code of this prototype was written with the assistance of an AI coding tool
