@@ -37,6 +37,9 @@ Built for the NASA Space Apps Challenge 2026, challenge
 ![Medical Resources & Crew Capabilities](docs/screenshots/10-medical-resources-crew-capabilities.png)
 *10. Resource Intelligence & crew capability matching: verifying in-flight medical inventory and certified crew availability (e.g. retinal OCT examination for SANS) before executing protocols.*
 
+![Interactive Discomfort Reporting & Layer Toggling](docs/screenshots/11-report-discomfort-layer-toggle.jpg)
+*11. Interactive discomfort reporting & layer toggling: raycast-based 3D body picking to pinpoint localized pain or symptoms, with selective anatomical layer visibility.*
+
 
 ## What it does
 
